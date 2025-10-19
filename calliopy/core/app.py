@@ -2,8 +2,16 @@ import inspect
 import importlib
 import os
 import pkgutil
+import threading
 from typing import Any, List, Type
 from types import ModuleType
+from calliopy.core.frontend import CalliopyFrontend, DialogueManager
+
+
+def scene(dial: DialogueManager):
+    dial.say("Alice", "Hello, Bob! Nice day, isn't it?")
+    dial.say("Bob", "Indeed, Alice. The forest is beautiful today.")
+    dial.say("Alice", "Let's go explore a bit further!")
 
 
 class CalliopyApp:
@@ -21,7 +29,13 @@ class CalliopyApp:
         return inspect.getmembers(module, inspect.isfunction)
 
     def run(self) -> None:
-        pass
+        self.frontend = CalliopyFrontend()
+        dial = DialogueManager()
+        self.frontend.set_dialogue_manager(dial)
+        scene_thread = threading.Thread(target=scene, args=(dial,))
+        scene_thread.start()
+        self.frontend.set_scene_thread(scene_thread)
+        self.frontend.run()
 
     def load_module(self, module_name: str) -> None:
         all_classes, all_funcs = self.get_module_classes(module_name)
