@@ -9,7 +9,7 @@ def _ensure_meta_lists(cls) -> None:
 def _decorate_component(cls, tag: str | list[str] | None):
     tags = [tag] if isinstance(tag, str) else tag or []
     cls.__calliopy_decorators__["Component"] = {
-            "tag": tags
+            "tags": tags
     }
 
 
