@@ -4,7 +4,7 @@ from calliopy.core.frontend import DialogueManager
 
 
 @Scene()
-def scene(dial: DialogueManager):
+def scene(dial: DialogueManager) -> str:
     dial.say("Alice", "Hello, Bob! Nice day, isn't it?")
     dial.say("Bob", "Indeed, Alice. The forest is beautiful today.")
     dial.say("Alice", "Let's go explore a bit further!")
