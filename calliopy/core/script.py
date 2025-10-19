@@ -98,9 +98,10 @@ class CalliopyScript:
         type_hints = get_type_hints(component, globals(), locals())
         for i, (key, _) in enumerate(signature.parameters.items()):
             hint = type_hints.get(key)
+            type_name = get_type_name(hint) if hint is not None else None
             dep = DependencyData(
                     name=key,
-                    dep_type=get_type_name(hint),
+                    dep_type=type_name,
                     param=i,
             )
             dependencies.append(dep)
