@@ -56,6 +56,30 @@ raylib.DrawTexture.restype = None
 raylib.UnloadTexture.argtypes = [Texture2D]
 raylib.UnloadTexture.restype = None
 
+
+class Vector2(ctypes.Structure):
+    _fields_ = [
+        ("x", ctypes.c_float),
+        ("y", ctypes.c_float)
+    ]
+
+
+class Rectangle(ctypes.Structure):
+    _fields_ = [
+        ("x", ctypes.c_float),
+        ("y", ctypes.c_float),
+        ("width", ctypes.c_float),
+        ("height", ctypes.c_float)
+    ]
+
+
+raylib.DrawTextureEx.argtypes = [Texture2D, Vector2, ctypes.c_float, ctypes.c_float, ctypes.c_uint]
+raylib.DrawTextureEx.restype = None
+
+raylib.DrawTexturePro.argtypes = [Texture2D, Rectangle, Rectangle, Vector2, ctypes.c_float, ctypes.c_uint]
+raylib.DrawTexturePro.restype = None
+
+
 # Constants
 RAYWHITE = 0xFFFFFFFF
 BLACK = 0xFF000000
@@ -116,3 +140,17 @@ class Raylib:
 
     def unload_texture(self, texture: Texture2D) -> None:
         raylib.UnloadTexture(texture)
+
+    def draw_texture_ex(self, texture: Texture2D, pos: Vector2, rotation: float, scale: float, color: int) -> None:
+        raylib.DrawTextureEx(texture, pos, rotation, scale, color)
+
+    def draw_texture_pro(
+        self,
+        texture: Texture2D,
+        src: Rectangle,
+        dest: Rectangle,
+        origin: Vector2,
+        rotation: float,
+        color: int
+    ) -> None:
+        raylib.DrawTexturePro(texture, src, dest, origin, rotation, color)
