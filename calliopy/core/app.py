@@ -5,13 +5,8 @@ import pkgutil
 import threading
 from typing import Any, List, Type
 from types import ModuleType
-from calliopy.core.frontend import CalliopyFrontend, DialogueManager
-
-
-def scene(dial: DialogueManager):
-    dial.say("Alice", "Hello, Bob! Nice day, isn't it?")
-    dial.say("Bob", "Indeed, Alice. The forest is beautiful today.")
-    dial.say("Alice", "Let's go explore a bit further!")
+from calliopy.core.frontend import CalliopyFrontend
+from calliopy.core.script import CalliopyScript
 
 
 class CalliopyApp:
@@ -19,6 +14,7 @@ class CalliopyApp:
             self,
             module_name: str,
             ) -> None:
+        self.container = CalliopyScript()
         self.load_module("calliopy.core")
         self.load_module(module_name)
 
@@ -30,9 +26,9 @@ class CalliopyApp:
 
     def run(self) -> None:
         self.frontend = CalliopyFrontend()
-        dial = DialogueManager()
-        self.frontend.set_dialogue_manager(dial)
-        scene_thread = threading.Thread(target=scene, args=(dial,))
+        dialogue = self.container.dial
+        self.frontend.set_dialogue_manager(dialogue)
+        scene_thread = threading.Thread(target=self.container.run)
         scene_thread.start()
         self.frontend.set_scene_thread(scene_thread)
         self.frontend.run()
@@ -43,6 +39,10 @@ class CalliopyApp:
         print(components)
         components_func = self.get_components(all_funcs)
         print(components_func)
+        for cls in components_func:
+            self.container.register(cls)
+        for cls in components:
+            self.container.register(cls)
 
     def get_module_classes(self, package_name: str) -> List[Any]:
         package = importlib.import_module(package_name)
