@@ -5,3 +5,7 @@ description = "Visual novel framework with DI container"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
