@@ -12,8 +12,10 @@ from calliopy.core.script import CalliopyScript
 class CalliopyApp:
     def __init__(
             self,
-            module_name: str,
+            module_name: str | None = None,
             ) -> None:
+        if module_name is None:
+            module_name = '__main__'
         self.container = CalliopyScript()
         self.load_module("calliopy.core")
         self.load_module(module_name)
