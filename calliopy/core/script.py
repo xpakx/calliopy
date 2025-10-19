@@ -23,8 +23,6 @@ class CalliopyScript:
         self.scenes = []
         self.dial = None
         self.current = 0
-        # TODO: these could be also returned from
-        # methods, so we should have list by class
         self.components_by_class = {}
         self.names = set()
         self.components_by_tag = {}
@@ -32,6 +30,7 @@ class CalliopyScript:
     def run(self):
         print(self.components_by_class)
         print(self.components_by_tag)
+        print(self.scenes)
         while self.current < len(self.scenes):
             scene = self.scenes[self.current]
             scene(self.dial)
@@ -44,6 +43,7 @@ class CalliopyScript:
         constructable = True
         if "Scene" in self.get_decorators(component):
             constructable = False
+            print(comp_orig_name)
             self.scenes.append(component)
         print(component.__name__)
         if "DialogueManager" == component.__name__:

@@ -1,5 +1,6 @@
 from calliopy.core.raylib import Raylib, KEY_ENTER
 from calliopy.core.raylib import WHITE, RAYWHITE
+from calliopy.core.raylib import Rectangle, Vector2
 from calliopy.core.annotations import Component
 import threading
 
@@ -41,7 +42,18 @@ class CalliopyFrontend:
         while not raylib.window_should_close():
             raylib.begin_drawing()
             raylib.clear_background(RAYWHITE)
-            raylib.draw_texture(bg, 0, 0, WHITE)
+
+            bg_w, bg_h = bg.width, bg.height
+            scale = max(self.screen_width / bg_w, self.screen_height / bg_h)
+
+            raylib.draw_texture_pro(
+                bg,
+                Rectangle(0, 0, bg_w, bg_h),
+                Rectangle(0, 0, bg_w * scale, bg_h * scale),
+                Vector2(0, 0),
+                0,
+                WHITE
+            )
 
             if self.dial.speaker == "Bob":
                 tex = char_data[1][0]
