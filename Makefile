@@ -14,4 +14,4 @@ mypy:
 	uvx mypy calliopy/
 
 test:
-	uvx pytest
+	PYTHONPATH=../calliopy uvx pytest
