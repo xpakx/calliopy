@@ -1,6 +1,7 @@
 import inspect
 import importlib
 import os
+import sys
 import pkgutil
 import threading
 from typing import Any, List, Type
@@ -46,13 +47,23 @@ class CalliopyApp:
         for cls in components:
             self.container.register(cls)
 
+    def import_module(self, package_name: str) -> ModuleType:
+        if package_name in sys.modules:
+            package = sys.modules[package_name]
+            print(f"Skipping already loaded module: {package_name}")
+        else:
+            package = importlib.import_module(package_name)
+        return package
+
     def get_module_classes(self, package_name: str) -> List[Any]:
-        package = importlib.import_module(package_name)
+        package = self.import_module(package_name)
+
         if not package or not package.__file__:
             raise Exception("Error")
 
         all_classes = set()
         all_funcs = set()
+        print("PKG:", package.__file__)
         is_init = package.__file__.endswith("__init__.py")
         is_dir = os.path.isdir(package.__file__)
 
@@ -69,7 +80,7 @@ class CalliopyApp:
             for _, module_name, is_pkg in pkgutil.\
                     walk_packages([package_dir], prefix=package_name + "."):
                 try:
-                    module = importlib.import_module(module_name)
+                    module = self.import_module(module_name)
                     all_classes.update(self.inspect_module_class(module))
                     all_funcs.update(self.inspect_module_func(module))
                 except ImportError as e:
