@@ -29,7 +29,7 @@ class CalliopyApp:
 
     def run(self) -> None:
         self.frontend = CalliopyFrontend()
-        dialogue = self.container.dial
+        dialogue = self.container.get_dial()
         self.frontend.set_dialogue_manager(dialogue)
         scene_thread = threading.Thread(target=self.container.run)
         scene_thread.start()
