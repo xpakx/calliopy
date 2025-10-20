@@ -11,9 +11,15 @@ characters = [
     {"image": "files/bob.png", "pos": (500, 200)},
 ]
 
+log_level = {
+        1: "TRACE", 2: "DEBUG", 3: "INFO",
+        4: "WARNING", 5: "ERROR", 6: "FATAL",
+}
+
 
 def trace_callback(level, message):
-    print(f"[raylib:{level}] {message.decode('utf-8')}")
+    lvl = log_level[level]
+    print(f"[raylib:{lvl}] {message.decode('utf-8')}")
 
 
 class CalliopyFrontend:
