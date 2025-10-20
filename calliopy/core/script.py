@@ -31,12 +31,24 @@ class CalliopyScript:
         print(self.components_by_class)
         print(self.components_by_tag)
         print(self.scenes)
+        self.scenes.sort(key=lambda s: s.__calliopy_decorators__["Scene"]["num"])
+
+        tag = None
         while self.current < len(self.scenes):
             if self.dial._abort:
                 return
-            scene = self.scenes[self.current]
-            self.run_function(scene)
-            self.current += 1
+            scene = self.next_scene(tag)
+            tag = self.run_function(scene)
+
+    def next_scene(self, tag: str | None):
+        if tag is not None:
+            for i, scene in enumerate(self.scenes):
+                if scene.__name__ == tag:
+                    self.current = i + 1
+                    return scene
+        scene = self.scenes[self.current]
+        self.current += 1
+        return scene
 
     def get_dial(self):
         self.dial = self.get_component(None, "dial")
