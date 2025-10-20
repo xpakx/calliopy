@@ -132,7 +132,7 @@ class DialogueManager:
 
     def choice(self, *options):
         if self._abort:
-            return
+            return ChoiceResult(0)
         self.options = list(options)
         self.choice_result = None
         self.waiting_for_input.clear()
