@@ -1,4 +1,4 @@
-.PHONY: run mypy test $(EXAMPLES)
+.PHONY: run mypy test $(EXAMPLES) forwarder
 EXAMPLES := $(notdir $(wildcard calliopy/examples/*.py))
 EXAMPLES := $(EXAMPLES:.py=) 
 
@@ -15,3 +15,7 @@ mypy:
 
 test:
 	PYTHONPATH=../calliopy uvx pytest
+
+forwarder: ./clibs/forward_trace.c
+	gcc -fPIC -shared ./clibs/forward_trace.c -o ./clibs/forward_trace.so
+

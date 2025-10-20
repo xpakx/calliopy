@@ -1,9 +1,13 @@
 import ctypes
 
-raylib = ctypes.CDLL("./clibs/libraylib.so")
+# TODO: not sure if RTLD_GLOBAL is a good idea here, might
+# reconsider just wrapping raylib in c later
+raylib = ctypes.CDLL("./clibs/libraylib.so", mode=ctypes.RTLD_GLOBAL)
+forwarder = ctypes.CDLL("./clibs/forward_trace.so")
 
 # TODO: Windows
-# raylib = ctypes.CDLL("raylib.dll")
+# raylib = ctypes.CDLL("./clibs/libraylib.dll")
+# forwarder = ctypes.CDLL("./clibs/forward_trace.dll")
 
 raylib.InitWindow.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_char_p]
 raylib.InitWindow.restype = None
@@ -80,8 +84,8 @@ raylib.DrawTexturePro.argtypes = [Texture2D, Rectangle, Rectangle, Vector2, ctyp
 raylib.DrawTexturePro.restype = None
 
 TRACELOGCALLBACK = ctypes.CFUNCTYPE(None, ctypes.c_int, ctypes.c_char_p)
-raylib.SetTraceLogCallback.argtypes = [TRACELOGCALLBACK]
-raylib.SetTraceLogCallback.restype = None
+forwarder.SetPythonTraceCallback.argtypes = [TRACELOGCALLBACK]
+forwarder.SetPythonTraceCallback.restype = None
 
 # Constants
 RAYWHITE = 0xFFFFFFFF
@@ -163,4 +167,4 @@ class Raylib:
 
     def set_trace_log_callback(self, func):
         self._trace_callback = TRACELOGCALLBACK(func)
-        raylib.SetTraceLogCallback(self._trace_callback)
+        forwarder.SetPythonTraceCallback(self._trace_callback)
