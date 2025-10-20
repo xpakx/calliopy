@@ -4,7 +4,7 @@ import os
 import sys
 import pkgutil
 import threading
-from typing import Any, List, Type
+from typing import Any, List, Type, Tuple
 from types import ModuleType
 from calliopy.core.frontend import CalliopyFrontend
 from calliopy.core.script import CalliopyScript
@@ -47,23 +47,38 @@ class CalliopyApp:
         for cls in components:
             self.container.register(cls)
 
-    def import_module(self, package_name: str) -> ModuleType:
-        if package_name in sys.modules:
-            package = sys.modules[package_name]
-            print(f"Skipping already loaded module: {package_name}")
+    def import_module(self, name: str) -> Tuple[bool, ModuleType]:
+        if "__main__" in sys.modules:
+            main_module = sys.modules["__main__"]
+            if getattr(main_module, "__package__", None):
+                package_name = main_module.__package__
+                # TODO: test this
+                file_stem = os.path.splitext(os.path.basename(main_module.__file__))[0]
+                module_name = f"{package_name}.{file_stem}"
+                print("MAIN:", module_name, name)
+                if module_name == name:
+                    print(f"Skipping __main__ module: {name}")
+                    return True, main_module
+        if name in sys.modules:
+            package = sys.modules[name]
+            loaded = True
+            print(f"Skipping already loaded module: {name}")
         else:
-            package = importlib.import_module(package_name)
-        return package
+            package = importlib.import_module(name)
+            loaded = False
+        return loaded, package
 
     def get_module_classes(self, package_name: str) -> List[Any]:
-        package = self.import_module(package_name)
+        _, package = self.import_module(package_name)
 
         if not package or not package.__file__:
+            print(package_name)
+            print(package is None)
+            print(package.__file__ is None)
             raise Exception("Error")
 
         all_classes = set()
         all_funcs = set()
-        print("PKG:", package.__file__)
         is_init = package.__file__.endswith("__init__.py")
         is_dir = os.path.isdir(package.__file__)
 
@@ -80,7 +95,7 @@ class CalliopyApp:
             for _, module_name, is_pkg in pkgutil.\
                     walk_packages([package_dir], prefix=package_name + "."):
                 try:
-                    module = self.import_module(module_name)
+                    _, module = self.import_module(module_name)
                     all_classes.update(self.inspect_module_class(module))
                     all_funcs.update(self.inspect_module_func(module))
                 except ImportError as e:
