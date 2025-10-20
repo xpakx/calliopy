@@ -15,7 +15,12 @@ def _decorate_component(cls, tag: str | list[str] | None):
 
 # TODO: add necessary fields
 def _decorate_scene(cls):
-    cls.__calliopy_decorators__["Scene"] = {}
+    num = SceneCounter.next()
+    cls.__calliopy_decorators__["Scene"] = {
+            "num": num,
+            "name": cls.__name__,
+    }
+    print("Scene:", cls.__name__, num)
 
 
 def Component(tags: str | list[str] | None = None):
@@ -42,3 +47,13 @@ def Scene(
         _decorate_scene(cls)
         return cls
     return wrapper
+
+
+class SceneCounter:
+    _num = 0
+
+    @classmethod
+    def next(cls) -> int:
+        r = cls._num
+        cls._num += 1
+        return r

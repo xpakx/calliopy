@@ -42,6 +42,7 @@ class CalliopyScript:
             return
         constructable = True
         if "Scene" in self.get_decorators(component):
+            print(comp_orig_name, self.get_decorators(component)["Scene"])
             constructable = False
             print(comp_orig_name)
             self.scenes.append(component)
