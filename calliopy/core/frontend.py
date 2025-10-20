@@ -141,6 +141,15 @@ class DialogueManager:
         self.options = []
         return ChoiceResult(result)
 
+    def narrate(self, text):
+        if self._abort:
+            return
+        self.speaker = None
+        self.current_text = text
+        self.waiting_for_input.clear()
+        self.waiting_for_input.wait()
+        self.current_text = ""
+
     def cancel(self):
         self._abort = True
         self.waiting_for_input.set()
