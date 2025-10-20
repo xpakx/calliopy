@@ -79,6 +79,9 @@ raylib.DrawTextureEx.restype = None
 raylib.DrawTexturePro.argtypes = [Texture2D, Rectangle, Rectangle, Vector2, ctypes.c_float, ctypes.c_uint]
 raylib.DrawTexturePro.restype = None
 
+TRACELOGCALLBACK = ctypes.CFUNCTYPE(None, ctypes.c_int, ctypes.c_char_p)
+raylib.SetTraceLogCallback.argtypes = [TRACELOGCALLBACK]
+raylib.SetTraceLogCallback.restype = None
 
 # Constants
 RAYWHITE = 0xFFFFFFFF
@@ -99,6 +102,9 @@ KEY_9 = 57
 
 
 class Raylib:
+    def __init__(self) -> None:
+        self._trace_callback = None
+
     def init_window(self, width: int, height: int, name: str) -> None:
         raylib.InitWindow(width, height, bytes(name, "utf-8"))
 
@@ -154,3 +160,7 @@ class Raylib:
         color: int
     ) -> None:
         raylib.DrawTexturePro(texture, src, dest, origin, rotation, color)
+
+    def set_trace_log_callback(self, func):
+        self._trace_callback = TRACELOGCALLBACK(func)
+        raylib.SetTraceLogCallback(self._trace_callback)

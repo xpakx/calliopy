@@ -12,6 +12,10 @@ characters = [
 ]
 
 
+def trace_callback(level, message):
+    print(f"[raylib:{level}] {message.decode('utf-8')}")
+
+
 class CalliopyFrontend:
     def __init__(self, width=800, height=600, font_size=24):
         self.screen_width = width
@@ -29,6 +33,7 @@ class CalliopyFrontend:
 
     def run(self):
         raylib = self.raylib
+        raylib.set_trace_log_callback(trace_callback)
         raylib.init_window(self.screen_width, self.screen_height, "Mini VN")
         raylib.set_target_fps(60)
 
