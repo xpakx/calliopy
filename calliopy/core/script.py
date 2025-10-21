@@ -67,6 +67,7 @@ class CalliopyScript:
         print(component.__name__)
 
         component_name: str | None = None
+        component_resolved_type: type | None = None
         if inspect.isfunction(component):
             dependencies = self.check_dependencies(component)
 
@@ -76,10 +77,12 @@ class CalliopyScript:
             print("Returns", return_type)
             if return_type is not None and constructable:
                 component_name = get_type_name(return_type)
+                component_resolved_type = return_type
         elif inspect.isclass(component):
             init = getattr(component, "__init__", lambda self: None)
             dependencies = self.check_dependencies(init, True)
             component_name = get_type_name(component)
+            component_resolved_type = component
 
         if component_name is None and constructable:
             print("Constructable Component type is unknown")
@@ -95,20 +98,36 @@ class CalliopyScript:
         )
         comp_dec = self.get_decorators(component).get('Component', {})
         tags = comp_dec.get('tags', [])
-        self.add_component(comp_data, component_name, tags)
+        self.add_component(comp_data, component_name, component_resolved_type, tags)
         self.names.add(comp_orig_name)  # TODO: use orig_name as tag
 
     def add_component(
             self,
             comp_data: ComponentData,
             component_name: str,
+            component_resolved_type: type,
             tags: list[str] | None
+    ) -> None:
+        self.add_component_by_type(comp_data, component_name)
+        for tag in tags:
+            self.components_by_tag[tag] = comp_data
+        if component_resolved_type is not None:
+            for tp in component_resolved_type.__mro__:
+                if tp == object:
+                    continue
+                if tp == component_resolved_type:
+                    continue
+                name = get_type_name(tp)
+                self.add_component_by_type(comp_data, name)
+
+    def add_component_by_type(
+            self,
+            comp_data: ComponentData,
+            component_name: str
     ) -> None:
         if self.components_by_class.get(component_name) is None:
             self.components_by_class[component_name] = []
         self.components_by_class[component_name].append(comp_data)
-        for tag in tags:
-            self.components_by_tag[tag] = comp_data
 
     def check_dependencies(self, component, is_constructor=False) -> list[DependencyData]:
         dependencies = []
