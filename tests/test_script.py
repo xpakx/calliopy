@@ -85,14 +85,14 @@ def test_function_component_registration(script):
 
 def test_component_with_tag(script):
     comp_data = ComponentData(component_class=Tagged, dependencies=[], constructable=True)
-    script.add_component(comp_data, get_type_name(Tagged), tags=["tag1"])
+    script.add_component(comp_data, get_type_name(Tagged), Tagged, tags=["tag1"])
     tagged_instance = script.get_component(None, "tag1")
     assert isinstance(tagged_instance, Tagged)
 
 
 def test_tag_wrong_type_returns_none(script):
     comp_data = ComponentData(component_class=Tagged, dependencies=[], constructable=True)
-    script.add_component(comp_data, get_type_name(Tagged), tags=["tag1"])
+    script.add_component(comp_data, get_type_name(Tagged), Tagged, tags=["tag1"])
     result = script.get_component(get_type_name(A), "tag1")
     assert result is None
 
@@ -104,7 +104,6 @@ def test_scene_registration(script):
     assert scene2 in script.scenes
 
 
-@pytest.mark.skip(reason="Subclasses don't work yet")
 def test_scene_execution_order(script):
     executed = []
 
@@ -118,6 +117,7 @@ def test_scene_execution_order(script):
     script.register(ScriptableDialogueManager)
     script.register(s1)
     script.register(s2)
+    script.get_dial()
     script.run()
     assert executed == [1, 2]
 
