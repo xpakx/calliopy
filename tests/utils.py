@@ -1,12 +1,18 @@
 from calliopy.core.frontend import DialogueManager, ChoiceResult
+from calliopy.core.annotations import Component
 
 
+@Component(tags="dial")
 class ScriptableDialogueManager(DialogueManager):
-    def __init__(self, script: list[int] | None = None):
+    def __init__(self):
         super().__init__()
-        self._script = script or []
+        self._script = []
         self._call_count = 0
         self.say_log = []
+        self._abort = False
+
+    def script(self, script: list[int] | None = None):
+        self._script = script or []
 
     def say(self, who, text):
         self.say_log.append((who, text))

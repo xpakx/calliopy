@@ -13,7 +13,8 @@ def test_scene_default_choice():
 
 
 def test_scene_scripted_choice():
-    dial = ScriptableDialogueManager(script=[1])
+    dial = ScriptableDialogueManager()
+    dial.script([1])
 
     scene(dial)
 
