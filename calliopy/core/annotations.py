@@ -14,11 +14,27 @@ def _decorate_component(cls, tag: str | list[str] | None):
 
 
 # TODO: add necessary fields
-def _decorate_scene(cls):
+def _decorate_scene(
+        cls,
+        after: str | None = None,
+        default: bool = False,
+        if_true: Callable[[], bool] | str | None = None,
+        branch: str | None = None,
+        repeatable: bool = True,
+        priority: int = 0,
+        probability: float = 1.0
+):
     num = SceneCounter.next()
     cls.__calliopy_decorators__["Scene"] = {
-            "num": num,
             "name": cls.__name__,
+            "num": num,
+            "after": after,
+            "default": default,
+            "if_true": if_true,
+            "branch": branch,
+            "repeatable": repeatable,
+            "priority": priority,
+            "probability": probability,
     }
     print("Scene:", cls.__name__, num)
 
@@ -36,7 +52,7 @@ def Scene(
     default: bool = False,                            # run first
     if_true: Callable[[], bool] | str | None = None,  # condition for scene
     branch: str | None = None,                        # branch label
-    repeatable: bool = False,                         # can run multiple times
+    repeatable: bool = True,                          # can run multiple times
     priority: int = 0,                                # scene selection priority
     probability: float = 1.0,                         # chance of appearing
     tags: list[str] | None = None                     # arbitrary labels
@@ -44,7 +60,16 @@ def Scene(
     def wrapper(cls):
         _ensure_meta_lists(cls)
         _decorate_component(cls, tags)
-        _decorate_scene(cls)
+        _decorate_scene(
+                cls,
+                after,
+                default,
+                if_true,
+                branch,
+                repeatable,
+                priority,
+                probability
+        )
         return cls
     return wrapper
 
