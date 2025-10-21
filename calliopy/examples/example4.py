@@ -32,7 +32,7 @@ class Characters:
         self.mood = {"Alice": "cheerful", "Bob": "grumpy"}
 
 
-@Component(tags="chars")
+@Component(tags="charsd")
 class CharData:
     def __init__(self, characters: Characters, inv: Inventory):
         self.characters = characters
@@ -49,39 +49,39 @@ def intro(dial, time: TimeOfDay):
 
 
 @Scene()
-def forest_path(dial, time: TimeOfDay, chars):
+def forest_path(dial, time: TimeOfDay, charsd):
     dial.narrate(f"The forest path is quiet. {time.description()} surrounds you.")
     dial.say("Bob", "I hope we don't run into trouble...")
     dial.say("Alice", "Oh, come on! It'll be fun!")
     c = dial.choice("Investigate the strange noise", "Keep walking")
     if c.index == 1:
-        chars.inventory.add("Mushroom")
+        charsd.inventory.add("Mushroom")
         dial.say("Alice", "Look, I found a mushroom!")
         return "forest_cabin"
 
 
 @Scene()
-def mysterious_clearing(dial, chars):
+def mysterious_clearing(dial, charsd):
     dial.narrate("You enter a clearing and see a glowing orb hovering in the air.")
     c = dial.choice("Touch the orb", "Step back carefully")
     if c.index == 0:
         dial.say("Bob", "Wait, that looks dangerous!")
         dial.say("Alice", "Too late, I touched it...")
-        chars.inventory.add("Orb")
-        chars.characters.mood["Alice"] = "excited"
+        charsd.inventory.add("Orb")
+        charsd.characters.mood["Alice"] = "excited"
     else:
         dial.say("Alice", "Better safe than sorry.")
-        chars.characters.mood["Bob"] = "relieved"
+        charsd.characters.mood["Bob"] = "relieved"
 
 
 @Scene()
-def forest_cabin(dial, chars):
+def forest_cabin(dial, charsd):
     dial.narrate("You arrive at a small cabin in the woods.")
-    if chars.inventory.has("Orb"):
+    if charsd.inventory.has("Orb"):
         dial.say("Alice", "Look! The orb is glowing strangely inside the cabin...")
-    if chars.inventory.has("Mushroom"):
+    if charsd.inventory.has("Mushroom"):
         dial.say("Bob", "Hmm, maybe this mushroom could be useful...")
-    dial.say("Alice", f"My mood is {chars.characters.mood['Alice']}, yours is {chars.characters.mood['Bob']}")
+    dial.say("Alice", f"My mood is {charsd.characters.mood['Alice']}, yours is {charsd.characters.mood['Bob']}")
     c = dial.choice("Enter the cabin", "Camp outside")
     if c.index == 1:
         return "camp_outside"
