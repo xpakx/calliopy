@@ -36,18 +36,20 @@ class CalliopyScript:
         self.components_by_tag = {}
         self.logger = LoggerFactory.get_logger()
 
-    def run(self):
+    def init_scenes(self):
         self.logger.debug(self.components_by_class)
         self.logger.debug(self.components_by_tag)
         self.logger.debug(self.scenes)
         self.scenes.sort(key=lambda s: s.__calliopy_decorators__["Scene"]["num"])
+        self.tag = None
 
-        tag = None
-        while self.current < len(self.scenes):
-            if self.dial._abort:
-                return
-            scene = self.next_scene(tag)
-            tag = self.run_function(scene)
+    def get_next_scene(self, tag):
+        if self.dial._abort:
+            return None, None
+        if self.current >= len(self.scenes):
+            return None, None
+        scene = self.next_scene(tag)
+        return self.get_function(scene)
 
     def next_scene(self, tag: str | None):
         if tag is not None:
@@ -62,6 +64,9 @@ class CalliopyScript:
     def get_dial(self):
         self.dial = self.get_component(None, "dial")
         return self.dial
+
+    def get_scheduler(self):
+        return self.get_component(None, "scene_scheduler")
 
     def register(self, component):
         comp_orig_name = get_type_name(component)
@@ -232,6 +237,18 @@ class CalliopyScript:
             kwargs[dep.name] = dep_instance
 
         return func(**kwargs)
+
+    def get_function(self, func: Any) -> Any:
+        comp = self.components_by_class.get(get_type_name(func))
+        component = comp[0]
+        kwargs = {}
+        for dep in component.dependencies:
+            dep_instance = self.get_component(dep.dep_type, dep.name)
+            if dep_instance is None:
+                self.logger.warn(f"Cannot resolve dependency {dep.name} of type {dep.dep_type}")
+            kwargs[dep.name] = dep_instance
+
+        return func, kwargs
 
     def get_setters(self, cls) -> list[SetterData]:
         all_methods = inspect.getmembers(cls, predicate=lambda x: callable(x))

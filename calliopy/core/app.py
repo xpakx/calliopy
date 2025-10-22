@@ -3,7 +3,6 @@ import importlib
 import os
 import sys
 import pkgutil
-import threading
 from typing import Any, List, Type, Tuple
 from types import ModuleType
 from calliopy.core.frontend import CalliopyFrontend
@@ -32,10 +31,11 @@ class CalliopyApp:
     def run(self) -> None:
         self.frontend = CalliopyFrontend()
         dialogue = self.container.get_dial()
+        scheduler = self.container.get_scheduler()
+        self.container.init_scenes()
         self.frontend.set_dialogue_manager(dialogue)
-        scene_thread = threading.Thread(target=self.container.run)
-        scene_thread.start()
-        self.frontend.set_scene_thread(scene_thread)
+        self.frontend.set_scheduler(scheduler)
+        self.frontend.set_script(self.container)
         self.frontend.run()
 
     def load_module(self, module_name: str) -> None:

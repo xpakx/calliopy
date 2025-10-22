@@ -3,7 +3,7 @@ from calliopy.core.raylib import WHITE, RAYWHITE
 from calliopy.core.raylib import Rectangle, Vector2
 from calliopy.core.annotations import Component
 from calliopy.logger.logger import LoggerFactory
-import threading
+from greenlet import greenlet
 
 # TODO: remove
 bg_texture = "files/bg_forest.png"
@@ -33,14 +33,17 @@ class CalliopyFrontend:
         self.screen_height = height
         self.font_size = font_size
         self.raylib = Raylib()
-        self.scene_thread = None
+        self.scheduler = None
         self.dial = None
 
     def set_dialogue_manager(self, dial):
         self.dial = dial
 
-    def set_scene_thread(self, scene_thread):
-        self.scene_thread = scene_thread
+    def set_scheduler(self, scheduler):
+        self.scheduler = scheduler
+
+    def set_script(self, script):
+        self.script = script
 
     def run(self):
         raylib = self.raylib
@@ -89,17 +92,27 @@ class CalliopyFrontend:
             for i, opt in enumerate(self.dial.options):
                 raylib.draw_text(f"{i+1}. {opt}", 60, 500 + i*30, 24, WHITE)
 
+            proceed_scene = False
             if self.dial.current_text and raylib.is_key_pressed(KEY_ENTER):
-                self.dial.waiting_for_input.set()
-
+                proceed_scene = True
             for i in range(len(self.dial.options)):
                 if raylib.is_key_pressed(49+i):
                     self.dial.choice_result = i
-                    self.dial.waiting_for_input.set()
+                    proceed_scene = True
+            if not self.scheduler.current:
+                proceed_scene = True
+
+            if proceed_scene:
+                if self.scheduler.current and not self.scheduler.current.dead:
+                    self.scheduler.resume()
+                else:
+                    tag = self.scheduler.result
+                    new_scene, kwargs = self.script.get_next_scene(tag)
+                    if new_scene is None:
+                        break
+                    self.scheduler.run_scene(new_scene, **kwargs)
 
             raylib.end_drawing()
-            if not self.scene_thread.is_alive():
-                break
 
         self.dial.cancel()  # TODO: do for all components
 
@@ -107,7 +120,6 @@ class CalliopyFrontend:
             raylib.unload_texture(tex)
         raylib.unload_texture(bg)
 
-        self.scene_thread.join()
         raylib.close_window()
 
 
@@ -116,14 +128,31 @@ class ChoiceResult:
         self.index = index
 
 
+@Component(tags="scene_scheduler")
+class SceneScheduler:
+    def __init__(self):
+        self.current = None
+        self.main = greenlet.getcurrent()
+        self.result = None
+
+    def run_scene(self, scene_func, *args, **kwargs):
+        g = greenlet(lambda: scene_func(*args, **kwargs))
+        self.current = g
+        g.switch()
+
+    def resume(self):
+        if self.current and not self.current.dead:
+            self.result = self.current.switch()
+
+
 @Component(tags=["dialogue", "dial"])
 class DialogueManager:
-    def __init__(self):
+    def __init__(self, scene_scheduler):
+        self.scheduler = scene_scheduler
         self._abort = False
         self.current_text = ""
         self.speaker = None
         self.mood = None
-        self.waiting_for_input = threading.Event()
         self.choice_result = None
         self.options = []
 
@@ -132,8 +161,7 @@ class DialogueManager:
             return
         self.speaker = speaker
         self.current_text = text
-        self.waiting_for_input.clear()
-        self.waiting_for_input.wait()
+        self.scheduler.main.switch()
         self.current_text = ""
 
     def choice(self, *options):
@@ -141,8 +169,7 @@ class DialogueManager:
             return ChoiceResult(0)
         self.options = list(options)
         self.choice_result = None
-        self.waiting_for_input.clear()
-        self.waiting_for_input.wait()
+        self.scheduler.main.switch()
         result = self.choice_result
         self.options = []
         return ChoiceResult(result)
@@ -152,10 +179,8 @@ class DialogueManager:
             return
         self.speaker = None
         self.current_text = text
-        self.waiting_for_input.clear()
-        self.waiting_for_input.wait()
+        self.scheduler.main.switch()
         self.current_text = ""
 
     def cancel(self):
         self._abort = True
-        self.waiting_for_input.set()
