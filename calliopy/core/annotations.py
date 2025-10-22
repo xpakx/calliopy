@@ -1,4 +1,5 @@
 from typing import Callable
+from inspect import isclass
 
 
 def _ensure_meta_lists(cls) -> None:
@@ -82,3 +83,17 @@ class SceneCounter:
         r = cls._num
         cls._num += 1
         return r
+
+
+def _decorate_inject(method):
+    method.__calliopy_decorators__["Setter"] = {}
+
+
+def Inject():
+    def wrapper(method):
+        if isclass(method):
+            raise Exception("Only methods can be decorated with Inject")
+        _ensure_meta_lists(method)
+        _decorate_inject(method)
+        return method
+    return wrapper

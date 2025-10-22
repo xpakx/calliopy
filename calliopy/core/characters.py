@@ -1,14 +1,10 @@
-from calliopy.core.annotations import Component
+from calliopy.core.annotations import Component, Inject
 from calliopy.core.frontend import DialogueManager
 
 
 class Character:
-    def __init__(self, dial: DialogueManager) -> None:
-        # TODO: we want subclass dataclasses
-        # to work, without the need of including
-        # dial, so probably we should add setter-based
-        # autowiring for this
-        self.dial = dial
+    def __init__(self) -> None:
+        pass
 
     @property
     def name(self) -> str:
@@ -19,6 +15,10 @@ class Character:
             "property, `self.name()` method "
             "or a `self.name` attribute."
         )
+
+    @Inject()
+    def set_dialogue(self, dial: DialogueManager) -> None:
+        self.dial = dial
 
     def say(self, text: str) -> None:
         self.dial.say(self._name, text)

@@ -11,6 +11,8 @@ class Alice(Character):
         return "Alice"
 
 
+# TODO: container overwrites defaults,
+# still not sure what should it do
 @Component()
 @dataclass
 class Bob(Character):
@@ -30,16 +32,15 @@ class SimpleChar(Character):
 
 @Component(tags='diana')
 def diana(dial) -> SimpleChar:
-    diana = SimpleChar(name='Diana')
-    diana.dial = dial
-    return diana
+    return SimpleChar(name='Diana')
 
 
 @Scene()
-def end(dial, alice: Alice, celeste: Celeste, diana):
+def end(dial, alice: Alice, bob: Bob, celeste: Celeste, diana):
     alice.say("Huh?")
     celeste.say("'tis but a test.")
     diana.say("A test?")
+    bob.say("Indeed it is.")
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, get_type_hints
+from typing import Any, get_type_hints, Callable
 import inspect
 
 
@@ -11,11 +11,18 @@ class DependencyData:
 
 
 @dataclass
+class SetterData:
+    method: Callable | None = None
+    dependencies: list[DependencyData] = field(default_factory=list)
+
+
+@dataclass
 class ComponentData:
     component_class: type
     dependencies: list[DependencyData] = field(default_factory=list)
     component: Any | None = None
     constructable: bool = True
+    setters: list[SetterData] = field(default_factory=list)
 
 
 class CalliopyScript:
@@ -96,6 +103,10 @@ class CalliopyScript:
                 dependencies=dependencies,
                 constructable=constructable,
         )
+
+        if component_resolved_type is not None:
+            comp_data.setters = self.get_setters(component_resolved_type)
+
         comp_dec = self.get_decorators(component).get('Component', {})
         tags = comp_dec.get('tags', [])
         self.add_component(comp_data, component_name, component_resolved_type, tags)
@@ -193,9 +204,20 @@ class CalliopyScript:
             kwargs[dep.name] = dep_instance
 
         if inspect.isclass(comp_data.component_class):
-            return comp_data.component_class(**kwargs)
+            component = comp_data.component_class(**kwargs)
         else:
-            return comp_data.component_class(**kwargs)
+            component = comp_data.component_class(**kwargs)
+
+        for setter in comp_data.setters:
+            kwargs = {}
+            for dep in setter.dependencies:
+                dep_instance = self.get_component(dep.dep_type, dep.name)
+                if dep_instance is None:
+                    print(f"Cannot resolve setter dependency {dep.name} of type {dep.dep_type}")
+                kwargs[dep.name] = dep_instance
+            setter.method(component, **kwargs)
+
+        return component
 
     def run_function(self, func: Any) -> Any:
         comp = self.components_by_class.get(get_type_name(func))
@@ -208,6 +230,21 @@ class CalliopyScript:
             kwargs[dep.name] = dep_instance
 
         return func(**kwargs)
+
+    def get_setters(self, cls) -> list[SetterData]:
+        all_methods = inspect.getmembers(cls, predicate=lambda x: callable(x))
+        setters = []
+        for name, method in all_methods:
+            if name != "__init__" and name.startswith('__'):
+                continue
+            if "Setter" not in self.get_decorators(method):
+                continue
+            data = SetterData(
+                method=method,
+                dependencies=self.check_dependencies(method, True),
+            )
+            setters.append(data)
+        return setters
 
 
 def get_type_name(cls: type) -> str:
