@@ -1,5 +1,6 @@
 from calliopy.core.annotations import Component, Inject
 from calliopy.core.frontend import DialogueManager
+from calliopy.logger.logger import LoggerFactory
 
 
 class Character:
@@ -36,7 +37,8 @@ class Character:
 @Component(tags=["char_manager", "chars"])
 class CharacterManager:
     def __init__(self, characters: list[Character]) -> None:
-        print("Registered characters", characters)
+        self.logger = LoggerFactory.get_logger()
+        self.logger.info("Registered characters", characters)
         self.characters = {}
         for char in characters:
             self.characters[char.name] = char

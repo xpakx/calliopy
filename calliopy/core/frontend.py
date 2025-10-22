@@ -2,6 +2,7 @@ from calliopy.core.raylib import Raylib, KEY_ENTER
 from calliopy.core.raylib import WHITE, RAYWHITE
 from calliopy.core.raylib import Rectangle, Vector2
 from calliopy.core.annotations import Component
+from calliopy.logger.logger import LoggerFactory
 import threading
 
 # TODO: remove
@@ -17,9 +18,13 @@ log_level = {
 }
 
 
-def trace_callback(level, message):
-    lvl = log_level[level]
-    print(f"[raylib:{lvl}] {message.decode('utf-8')}")
+def get_raylib_logger():
+    logger = LoggerFactory.get_logger(for_cls="raylib")
+
+    def trace_callback(level, message):
+        lvl = log_level[level]
+        logger.debug(f"[raylib:{lvl}] {message.decode('utf-8')}")
+    return trace_callback
 
 
 class CalliopyFrontend:
@@ -39,6 +44,7 @@ class CalliopyFrontend:
 
     def run(self):
         raylib = self.raylib
+        trace_callback = get_raylib_logger()
         raylib.set_trace_log_callback(trace_callback)
         raylib.init_window(self.screen_width, self.screen_height, "Mini VN")
         raylib.set_target_fps(60)

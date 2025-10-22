@@ -14,7 +14,6 @@ def _decorate_component(cls, tag: str | list[str] | None):
     }
 
 
-# TODO: add necessary fields
 def _decorate_scene(
         cls,
         after: str | None = None,
@@ -37,7 +36,6 @@ def _decorate_scene(
             "priority": priority,
             "probability": probability,
     }
-    print("Scene:", cls.__name__, num)
 
 
 def Component(tags: str | list[str] | None = None):

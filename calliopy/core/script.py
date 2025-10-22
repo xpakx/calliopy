@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Any, get_type_hints, Callable
 import inspect
+from calliopy.logger.logger import LoggerFactory
 
 
 @dataclass
@@ -33,11 +34,12 @@ class CalliopyScript:
         self.components_by_class = {}
         self.names = set()
         self.components_by_tag = {}
+        self.logger = LoggerFactory.get_logger()
 
     def run(self):
-        print(self.components_by_class)
-        print(self.components_by_tag)
-        print(self.scenes)
+        self.logger.debug(self.components_by_class)
+        self.logger.debug(self.components_by_tag)
+        self.logger.debug(self.scenes)
         self.scenes.sort(key=lambda s: s.__calliopy_decorators__["Scene"]["num"])
 
         tag = None
@@ -67,11 +69,11 @@ class CalliopyScript:
             return
         constructable = True
         if "Scene" in self.get_decorators(component):
-            print(comp_orig_name, self.get_decorators(component)["Scene"])
+            self.logger.debug(comp_orig_name, self.get_decorators(component)["Scene"])
             constructable = False
-            print(comp_orig_name)
+            self.logger.debug(comp_orig_name)
             self.scenes.append(component)
-        print(component.__name__)
+        self.logger.debug(component.__name__)
 
         component_name: str | None = None
         component_resolved_type: type | None = None
@@ -80,8 +82,8 @@ class CalliopyScript:
 
             type_hints = get_type_hints(component, globals(), locals())
             return_type = type_hints.get('return')
-            print(type_hints)
-            print("Returns", return_type)
+            self.logger.debug(type_hints)
+            self.logger.debug("Returns", return_type)
             if return_type is not None and constructable:
                 component_name = get_type_name(return_type)
                 component_resolved_type = return_type
@@ -92,7 +94,7 @@ class CalliopyScript:
             component_resolved_type = component
 
         if component_name is None and constructable:
-            print("Constructable Component type is unknown")
+            self.logger.warn("Constructable Component type is unknown")
             return
 
         if component_name is None:
@@ -162,28 +164,28 @@ class CalliopyScript:
         return getattr(cls,  "__calliopy_decorators__", {})
 
     def get_component(self, type_name: str | None, tag: str | None = None) -> ComponentData | None:
-        print("getting component", type_name, tag)
+        self.logger.debug("getting component", type_name, tag)
         if tag:
-            print(self.components_by_tag.get(tag))
+            self.logger.debug(self.components_by_tag.get(tag))
             comp_data: ComponentData = self.components_by_tag.get(tag)
             if comp_data:
-                print("Tag found")
+                self.logger.debug("Tag found")
                 class_name = get_type_name(comp_data.component_class)
                 if type_name is not None and type_name != class_name:
-                    print("Tagged component of wrong type")
+                    self.logger.warn("Tagged component of wrong type")
                     return None
                 if comp_data.component is None and comp_data.constructable:
                     comp_data.component = self.construct_component(comp_data)
                 return comp_data.component
-        print("Tag not found, searching by type")
+        self.logger.debug("Tag not found, searching by type")
 
         comps = self.components_by_class.get(type_name)
         if not comps or len(comps) == 0:
-            print("No component with type")
+            self.logger.warn("No component with type")
             return None
 
         if len(comps) > 1:
-            print("Warn: multiple component with type")
+            self.logger.warn("multiple component with type")
 
         for comp_data in comps:
             if not comp_data.constructable:
@@ -195,12 +197,12 @@ class CalliopyScript:
         return None
 
     def construct_component(self, comp_data: ComponentData) -> Any:
-        print("constructing", comp_data)
+        self.logger.debug("constructing", comp_data)
         kwargs = {}
         for dep in comp_data.dependencies:
             dep_instance = self.get_component(dep.dep_type, dep.name)
             if dep_instance is None:
-                print(f"Cannot resolve dependency {dep.name} of type {dep.dep_type}")
+                self.logger.warn(f"Cannot resolve dependency {dep.name} of type {dep.dep_type}")
             kwargs[dep.name] = dep_instance
 
         if inspect.isclass(comp_data.component_class):
@@ -213,7 +215,7 @@ class CalliopyScript:
             for dep in setter.dependencies:
                 dep_instance = self.get_component(dep.dep_type, dep.name)
                 if dep_instance is None:
-                    print(f"Cannot resolve setter dependency {dep.name} of type {dep.dep_type}")
+                    self.logger.warn(f"Cannot resolve setter dependency {dep.name} of type {dep.dep_type}")
                 kwargs[dep.name] = dep_instance
             setter.method(component, **kwargs)
 
@@ -226,7 +228,7 @@ class CalliopyScript:
         for dep in component.dependencies:
             dep_instance = self.get_component(dep.dep_type, dep.name)
             if dep_instance is None:
-                print(f"Cannot resolve dependency {dep.name} of type {dep.dep_type}")
+                self.logger.warn(f"Cannot resolve dependency {dep.name} of type {dep.dep_type}")
             kwargs[dep.name] = dep_instance
 
         return func(**kwargs)

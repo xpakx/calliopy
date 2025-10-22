@@ -8,6 +8,7 @@ from typing import Any, List, Type, Tuple
 from types import ModuleType
 from calliopy.core.frontend import CalliopyFrontend
 from calliopy.core.script import CalliopyScript
+from calliopy.logger.logger import LoggerFactory
 
 
 class CalliopyApp:
@@ -15,6 +16,7 @@ class CalliopyApp:
             self,
             module_name: str | None = None,
             ) -> None:
+        self.logger = LoggerFactory.get_logger()
         if module_name is None:
             module_name = '__main__'
         self.container = CalliopyScript()
@@ -39,9 +41,9 @@ class CalliopyApp:
     def load_module(self, module_name: str) -> None:
         all_classes, all_funcs = self.get_module_classes(module_name)
         components = self.get_components(all_classes)
-        print(components)
+        self.logger.debug(components)
         components_func = self.get_components(all_funcs)
-        print(components_func)
+        self.logger.debug(components_func)
         for cls in components_func:
             self.container.register(cls)
         for cls in components:
@@ -55,14 +57,14 @@ class CalliopyApp:
                 # TODO: test this
                 file_stem = os.path.splitext(os.path.basename(main_module.__file__))[0]
                 module_name = f"{package_name}.{file_stem}"
-                print("MAIN:", module_name, name)
+                self.logger.debug("MAIN:", module_name, name)
                 if module_name == name:
-                    print(f"Skipping __main__ module: {name}")
+                    self.logger.debug(f"Skipping __main__ module: {name}")
                     return True, main_module
         if name in sys.modules:
             package = sys.modules[name]
             loaded = True
-            print(f"Skipping already loaded module: {name}")
+            self.logger.debug(f"Skipping already loaded module: {name}")
         else:
             package = importlib.import_module(name)
             loaded = False
@@ -72,9 +74,9 @@ class CalliopyApp:
         _, package = self.import_module(package_name)
 
         if not package or not package.__file__:
-            print(package_name)
-            print(package is None)
-            print(package.__file__ is None)
+            self.logger.debug(package_name)
+            self.logger.debug(package is None)
+            self.logger.debug(package.__file__ is None)
             raise Exception("Error")
 
         all_classes = set()
@@ -99,7 +101,7 @@ class CalliopyApp:
                     all_classes.update(self.inspect_module_class(module))
                     all_funcs.update(self.inspect_module_func(module))
                 except ImportError as e:
-                    print(f"Failed to import module {module_name}: {e}")
+                    self.logger.error(f"Failed to import module {module_name}: {e}")
 
         return all_classes, all_funcs
 
