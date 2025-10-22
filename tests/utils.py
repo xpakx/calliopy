@@ -5,7 +5,7 @@ from calliopy.core.annotations import Component
 @Component(tags="dial")
 class ScriptableDialogueManager(DialogueManager):
     def __init__(self):
-        super().__init__()
+        super().__init__(None)
         self._script = []
         self._call_count = 0
         self.say_log = []

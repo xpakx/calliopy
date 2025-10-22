@@ -117,8 +117,18 @@ def test_scene_execution_order(script):
     script.register(ScriptableDialogueManager)
     script.register(s1)
     script.register(s2)
+
     script.get_dial()
-    script.run()
+    script.init_scenes()
+    end = False
+    tag = None
+    while not end:
+        scene, kwargs = script.get_next_scene(tag)
+        if scene is None:
+            end = True
+        else:
+            tag = scene(**kwargs)
+
     assert executed == [1, 2]
 
 

@@ -14,7 +14,7 @@ mypy:
 	uvx mypy calliopy/
 
 test:
-	PYTHONPATH=../calliopy uvx pytest
+	PYTHONPATH=../calliopy uvx --with greenlet pytest
 
 forwarder: ./clibs/forward_trace.c
 	gcc -fPIC -shared ./clibs/forward_trace.c -o ./clibs/forward_trace.so
