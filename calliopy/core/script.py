@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
-from typing import Any, get_type_hints, Callable
+from typing import Any, get_type_hints, Callable, List
+from typing import get_args, get_origin
 import inspect
 from calliopy.logger.logger import LoggerFactory
 
@@ -8,6 +9,7 @@ from calliopy.logger.logger import LoggerFactory
 class DependencyData:
     name: str = "unknown"
     dep_type: str | None = None
+    list_of: bool = False
     param: int = 0
 
 
@@ -162,6 +164,15 @@ class CalliopyScript:
                     dep_type=type_name,
                     param=param_num,
             )
+            if hint is not None:
+                origin = get_origin(hint)
+                if origin is not None and origin in [list, List]:
+                    args = get_args(hint)
+                    if args:
+                        wrapped_type = args[0]
+                        if wrapped_type:
+                            dep.dep_type = get_type_name(wrapped_type)
+                            dep.list_of = True
             dependencies.append(dep)
         return dependencies
 
