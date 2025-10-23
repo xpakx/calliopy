@@ -38,7 +38,11 @@ class Character:
 class CharacterManager:
     def __init__(self, characters: list[Character]) -> None:
         self.logger = LoggerFactory.get_logger()
+        if characters is None:
+            self.logger.warn("Character list is None")
+        if len(characters) == 0:
+            self.logger.debug("Character list is empty")
         self.logger.info("Registered characters", characters)
         self.characters = {}
         for char in characters:
-            self.characters[char.name] = char
+            self.characters[char._name] = char
