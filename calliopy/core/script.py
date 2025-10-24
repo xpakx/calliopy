@@ -216,18 +216,7 @@ class CalliopyScript:
         self.logger.debug("constructing", comp_data)
         kwargs = {}
         for dep in comp_data.dependencies:
-            if dep.list_of:
-                dep_list = self.components_by_class.get(dep.dep_type, [])
-                dep_instance = []
-                for subdep in dep_list:
-                    if not subdep.constructable:
-                        continue
-                    if subdep.component is None:
-                        subdep.component = self.construct_component(comp_data)
-                    elem = subdep.component
-                    dep_instance.append(elem)
-            else:
-                dep_instance = self.get_component(dep.dep_type, dep.name)
+            dep_instance = self.construct_dependency(dep)
             if dep_instance is None:
                 self.logger.warn(f"Cannot resolve dependency {dep.name} of type {dep.dep_type}")
             kwargs[dep.name] = dep_instance
@@ -240,13 +229,28 @@ class CalliopyScript:
         for setter in comp_data.setters:
             kwargs = {}
             for dep in setter.dependencies:
-                dep_instance = self.get_component(dep.dep_type, dep.name)
+                dep_instance = self.construct_dependency(dep)
                 if dep_instance is None:
                     self.logger.warn(f"Cannot resolve setter dependency {dep.name} of type {dep.dep_type}")
                 kwargs[dep.name] = dep_instance
             setter.method(component, **kwargs)
 
         return component
+
+    def construct_dependency(self, dep: DependencyData) -> Any:
+        if dep.list_of:
+            dep_list = self.components_by_class.get(dep.dep_type, [])
+            dep_instance = []
+            for subdep in dep_list:
+                if not subdep.constructable:
+                    continue
+                if subdep.component is None:
+                    return None
+                elem = subdep.component
+                dep_instance.append(elem)
+        else:
+            dep_instance = self.get_component(dep.dep_type, dep.name)
+        return dep_instance
 
     def run_function(self, func: Any) -> Any:
         comp = self.components_by_class.get(get_type_name(func))
