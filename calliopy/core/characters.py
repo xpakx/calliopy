@@ -63,3 +63,15 @@ class CharacterManager:
                     "image": p,
                     "pos": (500, 200),
             }
+
+        files_dir = Path("files")
+        checked = set(c.lower() for c in self.characters if isinstance(c, str))
+        for p in files_dir.glob("*.png"):
+            name = p.stem.lower()
+            if name.startswith("bg_") or name in checked:
+                continue
+            if name not in self.textures:
+                self.textures[name.capitalize()] = {
+                    "image": str(p),
+                    "pos": (500, 200),
+                }
