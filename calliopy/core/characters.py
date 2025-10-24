@@ -1,6 +1,7 @@
 from calliopy.core.annotations import Component, Inject
 from calliopy.core.frontend import DialogueManager
 from calliopy.logger.logger import LoggerFactory
+from pathlib import Path
 
 
 class Character:
@@ -42,7 +43,23 @@ class CharacterManager:
             self.logger.warn("Character list is None")
         if len(characters) == 0:
             self.logger.debug("Character list is empty")
-        self.logger.info("Registered characters", characters)
+        self.logger.info("Registered characters", chars=characters)
         self.characters = {}
         for char in characters:
             self.characters[char._name] = char
+        self.set_textures()
+
+    def set_textures(self) -> None:
+        self.bg_texture = "files/bg_forest.png"
+        self.textures = {}
+        for char in self.characters.keys():
+            if type(char) is not str:
+                continue
+            p = f"files/{char.lower()}.png"
+            path = Path(p)
+            if not path.exists():
+                continue
+            self.textures[char] = {
+                    "image": p,
+                    "pos": (500, 200),
+            }

@@ -32,9 +32,11 @@ class CalliopyApp:
         self.frontend = CalliopyFrontend()
         dialogue = self.container.get_dial()
         scheduler = self.container.get_scheduler()
+        chars = self.container.get_component(None, "char_manager")
         self.container.init_scenes()
         self.frontend.set_dialogue_manager(dialogue)
         self.frontend.set_scheduler(scheduler)
+        self.frontend.set_character_manager(chars)
         self.frontend.set_script(self.container)
         self.frontend.run()
 

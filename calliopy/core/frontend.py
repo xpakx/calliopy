@@ -5,13 +5,6 @@ from calliopy.core.annotations import Component
 from calliopy.logger.logger import LoggerFactory
 from greenlet import greenlet
 
-# TODO: remove
-bg_texture = "files/bg_forest.png"
-characters = [
-    {"image": "files/alice.png", "pos": (0, 200)},
-    {"image": "files/bob.png", "pos": (500, 200)},
-]
-
 log_level = {
         1: "TRACE", 2: "DEBUG", 3: "INFO",
         4: "WARNING", 5: "ERROR", 6: "FATAL",
@@ -45,6 +38,9 @@ class CalliopyFrontend:
     def set_script(self, script):
         self.script = script
 
+    def set_character_manager(self, manager):
+        self.chars = manager
+
     def run(self):
         raylib = self.raylib
         trace_callback = get_raylib_logger()
@@ -52,10 +48,9 @@ class CalliopyFrontend:
         raylib.init_window(self.screen_width, self.screen_height, "Mini VN")
         raylib.set_target_fps(60)
 
-        bg = raylib.load_texture(bg_texture)
-        char_textures = [raylib.load_texture(c["image"]) for c in characters]
-        char_positions = [c["pos"] for c in characters]
-        char_data = list(zip(char_textures, char_positions))
+        bg = raylib.load_texture(self.chars.bg_texture)
+        for c in self.chars.textures.values():
+            c['texture'] = raylib.load_texture(c["image"])
 
         C = 0x88000000
 
@@ -75,13 +70,11 @@ class CalliopyFrontend:
                 WHITE
             )
 
-            if self.dial.speaker == "Bob":
-                tex = char_data[1][0]
-                pos = char_data[1][1]
-                raylib.draw_texture(tex, pos[0], pos[1], WHITE)
-            elif self.dial.speaker == "Alice":
-                tex = char_data[0][0]
-                pos = char_data[0][1]
+            # TODO: try to load new textures
+            if self.dial.speaker in self.chars.textures:
+                c = self.chars.textures[self.dial.speaker]
+                tex = c['texture']
+                pos = c['pos']
                 raylib.draw_texture(tex, pos[0], pos[1], WHITE)
 
             if self.dial.current_text:
@@ -116,8 +109,9 @@ class CalliopyFrontend:
 
         self.dial.cancel()  # TODO: do for all components
 
-        for tex in char_textures:
-            raylib.unload_texture(tex)
+        for c in self.chars.textures.values():
+            if c.get('texture'):
+                raylib.unload_texture(c['texture'])
         raylib.unload_texture(bg)
 
         raylib.close_window()
