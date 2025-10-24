@@ -43,6 +43,14 @@ def end(dial, alice: Alice, bob: Bob, celeste: Celeste, diana):
     bob.say("Indeed it is.")
 
 
+@Scene()
+def charlist(dial, chars):
+    print(chars.characters)
+    ls = [k for k in chars.characters.keys() if k is not None]
+    dial.narrate("Characters list:\n" +
+                 ", ".join(ls))
+
+
 if __name__ == "__main__":
     app = CalliopyApp("calliopy.examples.example5")
     app.run()

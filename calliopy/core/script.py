@@ -11,6 +11,7 @@ class DependencyData:
     dep_type: str | None = None
     list_of: bool = False
     param: int = 0
+    default: Any = None
 
 
 @dataclass
@@ -153,16 +154,20 @@ class CalliopyScript:
         dependencies = []
         signature = inspect.signature(component)
         type_hints = get_type_hints(component, globals(), locals())
-        for i, (key, _) in enumerate(signature.parameters.items()):
+        for i, (key, param) in enumerate(signature.parameters.items()):
             if is_constructor and i == 0:
                 continue  # skip 'self'
             param_num = i-1 if is_constructor else i
             hint = type_hints.get(key)
             type_name = get_type_name(hint) if hint is not None else None
+            default = None
+            if param.default is not inspect.Parameter.empty:
+                default = param.default
             dep = DependencyData(
                     name=key,
                     dep_type=type_name,
                     param=param_num,
+                    default=default,
             )
             if hint is not None:
                 origin = get_origin(hint)
@@ -250,6 +255,8 @@ class CalliopyScript:
                 dep_instance.append(elem)
         else:
             dep_instance = self.get_component(dep.dep_type, dep.name)
+        if dep_instance is None and dep.default is not None:
+            return dep.default
         return dep_instance
 
     def run_function(self, func: Any) -> Any:
