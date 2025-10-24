@@ -242,11 +242,11 @@ class CalliopyScript:
             dep_list = self.components_by_class.get(dep.dep_type, [])
             dep_instance = []
             for subdep in dep_list:
-                if not subdep.constructable:
-                    continue
-                if subdep.component is None:
-                    return None
+                if subdep.component is None and subdep.constructable:
+                    subdep.component = self.construct_component(subdep)
                 elem = subdep.component
+                if elem is None:
+                    continue
                 dep_instance.append(elem)
         else:
             dep_instance = self.get_component(dep.dep_type, dep.name)
