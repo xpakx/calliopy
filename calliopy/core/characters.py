@@ -18,6 +18,10 @@ class Character:
             "or a `self.name` attribute."
         )
 
+    @name.setter
+    def name(self, value: str) -> None:
+        self.__dict__["name"] = value
+
     @Inject()
     def set_dialogue(self, dial: DialogueManager) -> None:
         self.dial = dial

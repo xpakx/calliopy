@@ -35,6 +35,12 @@ def diana(dial) -> SimpleChar:
     return SimpleChar(name='Diana')
 
 
+@Component()
+class Erwin(Character):
+    def __init__(self):
+        self.name = "Erwin"
+
+
 @Scene()
 def end(dial, alice: Alice, bob: Bob, celeste: Celeste, diana):
     alice.say("Huh?")
