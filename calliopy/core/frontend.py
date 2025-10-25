@@ -70,6 +70,14 @@ class CalliopyFrontend:
             pos = c['pos']
             draw_texture(tex, pos[0], pos[1], WHITE)
 
+        for visible_image in self.chars.visible:
+            c = self.chars.textures.get(visible_image.capitalize())
+            if c is None:
+                continue
+            tex = c['texture']
+            pos = c['pos']
+            draw_texture(tex, pos[0], pos[1], WHITE)
+
     def draw_dialogue(self, text: str, bg_col):
         draw_rectangle(50, 450, 700, 120, bg_col)
         draw_rectangle_lines(50, 450, 700, 120, WHITE)

@@ -47,8 +47,19 @@ def end(dial, alice: Alice, bob: Bob, celeste: Celeste, diana):
 def charlist(dial, chars):
     print(chars.characters)
     ls = [k for k in chars.characters.keys() if k is not None]
+    chars.show("alice")
     dial.narrate("Characters list:\n" +
                  ", ".join(ls))
+
+
+@Scene()
+def images(dial, chars):
+    chars.reset()
+    chars.show("bob")
+    dial.narrate("Bob")
+    chars.hide("bob")
+    chars.show("alice")
+    dial.narrate("Alice")
 
 
 if __name__ == "__main__":

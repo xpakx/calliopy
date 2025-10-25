@@ -48,6 +48,7 @@ class CharacterManager:
         for char in characters:
             self.characters[char._name] = char
         self.set_textures()
+        self.visible = set()
 
     def set_textures(self) -> None:
         self.bg_texture = "files/bg_forest.png"
@@ -75,3 +76,12 @@ class CharacterManager:
                     "image": str(p),
                     "pos": (500, 200),
                 }
+
+    def show(self, image: str) -> None:
+        self.visible.add(image)
+
+    def hide(self, image: str) -> None:
+        self.visible.remove(image)
+
+    def reset(self) -> None:
+        self.visible.clear()
