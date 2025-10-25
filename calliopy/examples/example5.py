@@ -11,8 +11,6 @@ class Alice(Character):
         return "Alice"
 
 
-# TODO: container overwrites defaults,
-# still not sure what should it do
 @Component()
 @dataclass
 class Bob(Character):
@@ -42,7 +40,7 @@ class Erwin(Character):
 
 
 @Scene()
-def end(dial, alice: Alice, bob: Bob, celeste: Celeste, diana):
+def start(dial, alice: Alice, bob: Bob, celeste: Celeste, diana):
     alice.say("Huh?")
     celeste.say("'tis but a test.")
     diana.say("A test?")
@@ -59,13 +57,22 @@ def charlist(dial, chars):
 
 
 @Scene()
-def images(dial, chars):
+def images(dial, chars, erwin: Erwin):
     chars.reset()
     chars.show("bob")
     dial.narrate("Bob")
     chars.hide("bob")
-    chars.show("alice")
+    chars.show("alice", pos=(0, 200))
     dial.narrate("Alice")
+    erwin.say("Intersting...")
+
+
+@Scene()
+def end(dial, alice: Alice, bob: Bob, celeste: Celeste, diana):
+    alice.say("Huh?")
+    celeste.say("'tis but a test.")
+    diana.say("A test?")
+    bob.say("Indeed it is.")
 
 
 if __name__ == "__main__":

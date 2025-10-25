@@ -83,10 +83,15 @@ class CharacterManager:
                     "pos": (500, 200),
                 }
 
-    def show(self, image: str) -> None:
-        self.visible.add(image)
+    def show(
+            self,
+            image: str,
+            pos: tuple[int, int] | None = None
+    ) -> None:
+        self._show(self.visible, image, pos)
 
     def hide(self, image: str) -> None:
+        print(self.visible)
         self.visible.remove(image)
 
     def reset(self) -> None:
@@ -95,5 +100,25 @@ class CharacterManager:
     def reset_temp(self) -> None:
         self.visible_temporary.clear()
 
-    def show_temp(self, image: str) -> None:
-        self.visible_temporary.add(image)
+    def show_temp(
+            self,
+            image: str,
+            pos: tuple[int, int] | None = None
+    ) -> None:
+        self._show(self.visible_temporary, image, pos)
+
+    def _show(
+            self,
+            images: set[str],
+            image: str,
+            pos: tuple[int, int] | None
+    ) -> None:
+        tex_info = self.textures.get(image.capitalize())
+        if not tex_info:
+            self.logger.warn(f"Tried to show missing image: {image}")
+            return
+
+        if pos is not None:
+            tex_info["pos"] = pos
+
+        images.add(image)
