@@ -126,6 +126,7 @@ class CalliopyFrontend:
                     new_scene, kwargs = self.script.get_next_scene(tag)
                     if new_scene is None:
                         break
+                    self.chars.reset()
                     self.scheduler.run_scene(new_scene, **kwargs)
                 self.chars.reset_temp()
                 if self.chars.auto_speaker_portraits:
