@@ -41,6 +41,37 @@ class CalliopyFrontend:
     def set_character_manager(self, manager):
         self.chars = manager
 
+    def draw_background(self, bg):
+        raylib = self.raylib
+        raylib.clear_background(RAYWHITE)
+
+        bg_w, bg_h = bg.width, bg.height
+        scale = max(self.screen_width / bg_w, self.screen_height / bg_h)
+
+        raylib.draw_texture_pro(
+            bg,
+            Rectangle(0, 0, bg_w, bg_h),
+            Rectangle(0, 0, bg_w * scale, bg_h * scale),
+            Vector2(0, 0),
+            0,
+            WHITE
+        )
+
+    def draw_speaker(self):
+        raylib = self.raylib
+        # TODO: try to load new textures
+        if self.dial.speaker in self.chars.textures:
+            c = self.chars.textures[self.dial.speaker]
+            tex = c['texture']
+            pos = c['pos']
+            raylib.draw_texture(tex, pos[0], pos[1], WHITE)
+
+    def draw_dialogue(self, text: str, bg_col):
+        raylib = self.raylib
+        raylib.draw_rectangle(50, 450, 700, 120, bg_col)
+        raylib.draw_rectangle_lines(50, 450, 700, 120, WHITE)
+        raylib.draw_text(text, 60, 460, self.font_size, WHITE)
+
     def run(self):
         raylib = self.raylib
         trace_callback = get_raylib_logger()
@@ -56,31 +87,11 @@ class CalliopyFrontend:
 
         while not raylib.window_should_close():
             raylib.begin_drawing()
-            raylib.clear_background(RAYWHITE)
-
-            bg_w, bg_h = bg.width, bg.height
-            scale = max(self.screen_width / bg_w, self.screen_height / bg_h)
-
-            raylib.draw_texture_pro(
-                bg,
-                Rectangle(0, 0, bg_w, bg_h),
-                Rectangle(0, 0, bg_w * scale, bg_h * scale),
-                Vector2(0, 0),
-                0,
-                WHITE
-            )
-
-            # TODO: try to load new textures
-            if self.dial.speaker in self.chars.textures:
-                c = self.chars.textures[self.dial.speaker]
-                tex = c['texture']
-                pos = c['pos']
-                raylib.draw_texture(tex, pos[0], pos[1], WHITE)
+            self.draw_background(bg)
+            self.draw_speaker()
 
             if self.dial.current_text:
-                raylib.draw_rectangle(50, 450, 700, 120, C)
-                raylib.draw_rectangle_lines(50, 450, 700, 120, WHITE)
-                raylib.draw_text(self.dial.current_text, 60, 460, self.font_size, WHITE)
+                self.draw_dialogue(self.dial.current_text, C)
 
             for i, opt in enumerate(self.dial.options):
                 raylib.draw_text(f"{i+1}. {opt}", 60, 500 + i*30, 24, WHITE)
