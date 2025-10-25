@@ -49,6 +49,8 @@ class CharacterManager:
             self.characters[char._name] = char
         self.set_textures()
         self.visible = set()
+        self.visible_temporary = set()
+        self.auto_speaker_portraits = True
 
     def set_textures(self) -> None:
         self.bg_texture = "files/bg_forest.png"
@@ -85,3 +87,9 @@ class CharacterManager:
 
     def reset(self) -> None:
         self.visible.clear()
+
+    def reset_temp(self) -> None:
+        self.visible_temporary.clear()
+
+    def show_temp(self, image: str) -> None:
+        self.visible_temporary.add(image)

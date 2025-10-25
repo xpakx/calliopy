@@ -64,8 +64,10 @@ class CalliopyFrontend:
 
     def draw_speaker(self):
         # TODO: try to load new textures
-        if self.dial.speaker in self.chars.textures:
-            c = self.chars.textures[self.dial.speaker]
+        for visible_image in self.chars.visible_temporary:
+            c = self.chars.textures.get(visible_image.capitalize())
+            if c is None:
+                continue
             tex = c['texture']
             pos = c['pos']
             draw_texture(tex, pos[0], pos[1], WHITE)
@@ -125,6 +127,10 @@ class CalliopyFrontend:
                     if new_scene is None:
                         break
                     self.scheduler.run_scene(new_scene, **kwargs)
+                self.chars.reset_temp()
+                if self.chars.auto_speaker_portraits:
+                    if self.dial.speaker:
+                        self.chars.show_temp(self.dial.speaker)
 
             end_drawing()
 
