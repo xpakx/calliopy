@@ -104,67 +104,63 @@ KEY_7 = 55
 KEY_8 = 56
 KEY_9 = 57
 
+_trace_callback = None
 
-class Raylib:
-    def __init__(self) -> None:
-        self._trace_callback = None
 
-    def init_window(self, width: int, height: int, name: str) -> None:
-        raylib.InitWindow(width, height, bytes(name, "utf-8"))
+def init_window(width: int, height: int, name: str) -> None:
+    raylib.InitWindow(width, height, bytes(name, "utf-8"))
 
-    def window_should_close(self) -> bool:
-        return raylib.WindowShouldClose()
+def window_should_close() -> bool:
+    return raylib.WindowShouldClose()
 
-    def close_window(self) -> None:
-        raylib.CloseWindow()
+def close_window() -> None:
+    raylib.CloseWindow()
 
-    def begin_drawing(self) -> None:
-        raylib.BeginDrawing()
+def begin_drawing() -> None:
+    raylib.BeginDrawing()
 
-    def end_drawing(self) -> None:
-        raylib.EndDrawing()
+def end_drawing() -> None:
+    raylib.EndDrawing()
 
-    def clear_background(self, color: int) -> None:
-        raylib.ClearBackground(color)
+def clear_background(color: int) -> None:
+    raylib.ClearBackground(color)
 
-    def set_target_fps(self, fps: int) -> None:
-        raylib.SetTargetFPS(fps)
+def set_target_fps(fps: int) -> None:
+    raylib.SetTargetFPS(fps)
 
-    def is_key_pressed(self, code: int) -> bool:
-        return raylib.IsKeyPressed(code)
+def is_key_pressed(code: int) -> bool:
+    return raylib.IsKeyPressed(code)
 
-    def draw_rectangle(self, x: int, y: int, width: int, height: int, color: int) -> None:
-        raylib.DrawRectangle(x, y, width, height, color)
+def draw_rectangle(x: int, y: int, width: int, height: int, color: int) -> None:
+    raylib.DrawRectangle(x, y, width, height, color)
 
-    def draw_rectangle_lines(self, x: int, y: int, width: int, height: int, color: int) -> None:
-        raylib.DrawRectangleLines(x, y, width, height, color)
+def draw_rectangle_lines(x: int, y: int, width: int, height: int, color: int) -> None:
+    raylib.DrawRectangleLines(x, y, width, height, color)
 
-    def draw_text(self, text: str, x: int, y: int, font_size: int, color: int) -> None:
-        raylib.DrawText(bytes(text, "utf-8"), x, y, font_size, color)
+def draw_text(text: str, x: int, y: int, font_size: int, color: int) -> None:
+    raylib.DrawText(bytes(text, "utf-8"), x, y, font_size, color)
 
-    def load_texture(self, path: str) -> Texture2D:
-        return raylib.LoadTexture(bytes(path, "utf-8"))
+def load_texture(path: str) -> Texture2D:
+    return raylib.LoadTexture(bytes(path, "utf-8"))
 
-    def draw_texture(self, texture: Texture2D, x: int, y: int, color: int) -> None:
-        raylib.DrawTexture(texture, x, y, color)
+def draw_texture(texture: Texture2D, x: int, y: int, color: int) -> None:
+    raylib.DrawTexture(texture, x, y, color)
 
-    def unload_texture(self, texture: Texture2D) -> None:
-        raylib.UnloadTexture(texture)
+def unload_texture(texture: Texture2D) -> None:
+    raylib.UnloadTexture(texture)
 
-    def draw_texture_ex(self, texture: Texture2D, pos: Vector2, rotation: float, scale: float, color: int) -> None:
-        raylib.DrawTextureEx(texture, pos, rotation, scale, color)
+def draw_texture_ex(texture: Texture2D, pos: Vector2, rotation: float, scale: float, color: int) -> None:
+    raylib.DrawTextureEx(texture, pos, rotation, scale, color)
 
-    def draw_texture_pro(
-        self,
-        texture: Texture2D,
-        src: Rectangle,
-        dest: Rectangle,
-        origin: Vector2,
-        rotation: float,
-        color: int
-    ) -> None:
-        raylib.DrawTexturePro(texture, src, dest, origin, rotation, color)
+def draw_texture_pro(
+    texture: Texture2D,
+    src: Rectangle,
+    dest: Rectangle,
+    origin: Vector2,
+    rotation: float,
+    color: int
+) -> None:
+    raylib.DrawTexturePro(texture, src, dest, origin, rotation, color)
 
-    def set_trace_log_callback(self, func):
-        self._trace_callback = TRACELOGCALLBACK(func)
-        forwarder.SetPythonTraceCallback(self._trace_callback)
+def set_trace_log_callback(func):
+    forwarder.SetPythonTraceCallback(func)

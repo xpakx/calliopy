@@ -1,5 +1,12 @@
-from calliopy.core.raylib import Raylib, KEY_ENTER
-from calliopy.core.raylib import WHITE, RAYWHITE
+from calliopy.core.raylib import (
+        set_trace_log_callback, set_target_fps, window_should_close,
+        clear_background, draw_texture_pro, draw_texture, draw_rectangle,
+        draw_rectangle_lines, draw_text, close_window, unload_texture,
+        init_window, load_texture, begin_drawing, end_drawing,
+        is_key_pressed,
+        TRACELOGCALLBACK
+)
+from calliopy.core.raylib import WHITE, RAYWHITE, KEY_ENTER
 from calliopy.core.raylib import Rectangle, Vector2
 from calliopy.core.annotations import Component
 from calliopy.logger.logger import LoggerFactory
@@ -25,7 +32,6 @@ class CalliopyFrontend:
         self.screen_width = width
         self.screen_height = height
         self.font_size = font_size
-        self.raylib = Raylib()
         self.scheduler = None
         self.dial = None
 
@@ -42,13 +48,12 @@ class CalliopyFrontend:
         self.chars = manager
 
     def draw_background(self, bg):
-        raylib = self.raylib
-        raylib.clear_background(RAYWHITE)
+        clear_background(RAYWHITE)
 
         bg_w, bg_h = bg.width, bg.height
         scale = max(self.screen_width / bg_w, self.screen_height / bg_h)
 
-        raylib.draw_texture_pro(
+        draw_texture_pro(
             bg,
             Rectangle(0, 0, bg_w, bg_h),
             Rectangle(0, 0, bg_w * scale, bg_h * scale),
@@ -58,49 +63,46 @@ class CalliopyFrontend:
         )
 
     def draw_speaker(self):
-        raylib = self.raylib
         # TODO: try to load new textures
         if self.dial.speaker in self.chars.textures:
             c = self.chars.textures[self.dial.speaker]
             tex = c['texture']
             pos = c['pos']
-            raylib.draw_texture(tex, pos[0], pos[1], WHITE)
+            draw_texture(tex, pos[0], pos[1], WHITE)
 
     def draw_dialogue(self, text: str, bg_col):
-        raylib = self.raylib
-        raylib.draw_rectangle(50, 450, 700, 120, bg_col)
-        raylib.draw_rectangle_lines(50, 450, 700, 120, WHITE)
-        raylib.draw_text(text, 60, 460, self.font_size, WHITE)
+        draw_rectangle(50, 450, 700, 120, bg_col)
+        draw_rectangle_lines(50, 450, 700, 120, WHITE)
+        draw_text(text, 60, 460, self.font_size, WHITE)
 
     def run(self):
-        raylib = self.raylib
-        trace_callback = get_raylib_logger()
-        raylib.set_trace_log_callback(trace_callback)
-        raylib.init_window(self.screen_width, self.screen_height, "Mini VN")
-        raylib.set_target_fps(60)
+        trace_callback = TRACELOGCALLBACK(get_raylib_logger())
+        set_trace_log_callback(trace_callback)
+        init_window(self.screen_width, self.screen_height, "Mini VN")
+        set_target_fps(60)
 
-        bg = raylib.load_texture(self.chars.bg_texture)
+        bg = load_texture(self.chars.bg_texture)
         for c in self.chars.textures.values():
-            c['texture'] = raylib.load_texture(c["image"])
+            c['texture'] = load_texture(c["image"])
 
-        C = 0x88000000
+        DIAL_COLOR = 0x88000000
 
-        while not raylib.window_should_close():
-            raylib.begin_drawing()
+        while not window_should_close():
+            begin_drawing()
             self.draw_background(bg)
             self.draw_speaker()
 
             if self.dial.current_text:
-                self.draw_dialogue(self.dial.current_text, C)
+                self.draw_dialogue(self.dial.current_text, DIAL_COLOR)
 
             for i, opt in enumerate(self.dial.options):
-                raylib.draw_text(f"{i+1}. {opt}", 60, 500 + i*30, 24, WHITE)
+                draw_text(f"{i+1}. {opt}", 60, 500 + i*30, 24, WHITE)
 
             proceed_scene = False
-            if self.dial.current_text and raylib.is_key_pressed(KEY_ENTER):
+            if self.dial.current_text and is_key_pressed(KEY_ENTER):
                 proceed_scene = True
             for i in range(len(self.dial.options)):
-                if raylib.is_key_pressed(49+i):
+                if is_key_pressed(49+i):
                     self.dial.choice_result = i
                     proceed_scene = True
             if not self.scheduler.current:
@@ -116,16 +118,16 @@ class CalliopyFrontend:
                         break
                     self.scheduler.run_scene(new_scene, **kwargs)
 
-            raylib.end_drawing()
+            end_drawing()
 
         self.dial.cancel()  # TODO: do for all components
 
         for c in self.chars.textures.values():
             if c.get('texture'):
-                raylib.unload_texture(c['texture'])
-        raylib.unload_texture(bg)
+                unload_texture(c['texture'])
+        unload_texture(bg)
 
-        raylib.close_window()
+        close_window()
 
 
 class ChoiceResult:
