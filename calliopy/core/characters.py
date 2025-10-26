@@ -3,6 +3,7 @@ from calliopy.core.frontend import DialogueManager
 from calliopy.logger.logger import LoggerFactory
 from calliopy.core.raylib import load_texture, unload_texture, Texture2D
 from pathlib import Path
+from typing import Any
 
 
 class Character:
@@ -35,6 +36,22 @@ class Character:
         if callable(self.name):
             return self.name()
         return self.name
+
+    @property
+    def color(self) -> str | None:
+        if "color" in self.__dict__:
+            return self.__dict__["color"]
+        return None
+
+    @color.setter
+    def color(self, value: str) -> None:
+        self.__dict__["color"] = value
+
+    @property
+    def _color(self) -> str:
+        if callable(self.color):
+            return self.color()
+        return self.color
 
     def __repr__(self):
         return f"<Character name={self._name!r}>"
@@ -151,3 +168,9 @@ class CharacterManager:
         for c in self.textures.values():
             if c.get('texture'):
                 unload_texture(c['texture'])
+
+    def get_character_color(self, name: str) -> Any:
+        char = self.characters.get(name)
+        if not char:
+            return None
+        return char._color

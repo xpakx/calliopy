@@ -80,10 +80,10 @@ class CalliopyFrontend:
             pos = c['pos']
             draw_texture(tex, pos[0], pos[1], WHITE)
 
-    def draw_dialogue(self, text: str, bg_col):
+    def draw_dialogue(self, text: str, bg_col, txt_col):
         draw_rectangle(50, 450, 700, 120, bg_col)
         draw_rectangle_lines(50, 450, 700, 120, WHITE)
-        draw_text(text, 60, 460, self.font_size, WHITE)
+        draw_text(text, 60, 460, self.font_size, txt_col)
 
     def run(self):
         trace_callback = TRACELOGCALLBACK(get_raylib_logger())
@@ -94,6 +94,7 @@ class CalliopyFrontend:
         bg = load_texture(self.chars.bg_texture)
 
         DIAL_COLOR = 0x88000000
+        txt_col = WHITE
 
         while not window_should_close():
             begin_drawing()
@@ -101,7 +102,7 @@ class CalliopyFrontend:
             self.draw_speaker()
 
             if self.dial.current_text:
-                self.draw_dialogue(self.dial.current_text, DIAL_COLOR)
+                self.draw_dialogue(self.dial.current_text, DIAL_COLOR, txt_col)
 
             for i, opt in enumerate(self.dial.options):
                 draw_text(f"{i+1}. {opt}", 60, 500 + i*30, 24, WHITE)
@@ -130,6 +131,11 @@ class CalliopyFrontend:
                 if self.chars.auto_speaker_portraits:
                     if self.dial.speaker:
                         self.chars.show_temp(self.dial.speaker)
+                txt_col = WHITE
+                if self.dial.speaker:
+                    col = self.chars.get_character_color(self.dial.speaker)
+                    if col is not None:
+                        txt_col = col
 
             end_drawing()
 

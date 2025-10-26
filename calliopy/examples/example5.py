@@ -15,6 +15,7 @@ class Alice(Character):
 @dataclass
 class Bob(Character):
     name: str = "Bob"
+    color: int = 0xFF4455DD
 
 
 @Component()
