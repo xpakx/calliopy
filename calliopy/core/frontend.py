@@ -64,20 +64,20 @@ class CalliopyFrontend:
 
     def draw_speaker(self):
         # TODO: try to load new textures
-        for visible_image in self.chars.visible_temporary:
-            c = self.chars.get_texture(visible_image.capitalize())
+        for key, value in self.chars.visible_temporary.items():
+            c = self.chars.get_texture(key.capitalize())
             if c is None:
                 continue
             tex = c['texture']
-            pos = c['pos']
+            pos = value.pos
             draw_texture(tex, pos[0], pos[1], WHITE)
 
-        for visible_image in self.chars.visible:
-            c = self.chars.get_texture(visible_image.capitalize())
+        for key, value in self.chars.visible.items():
+            c = self.chars.get_texture(key.capitalize())
             if c is None:
                 continue
             tex = c['texture']
-            pos = c['pos']
+            pos = value.pos
             draw_texture(tex, pos[0], pos[1], WHITE)
 
     def draw_dialogue(self, text: str, bg_col, txt_col):

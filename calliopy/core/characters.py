@@ -4,6 +4,7 @@ from calliopy.logger.logger import LoggerFactory
 from calliopy.core.raylib import load_texture, unload_texture, Texture2D
 from pathlib import Path
 from typing import Any
+from dataclasses import dataclass
 
 
 class Character:
@@ -57,6 +58,16 @@ class Character:
         return f"<Character name={self._name!r}>"
 
 
+@dataclass
+class ImageDef:
+    name: str
+    mood: str | None = None
+    pos: tuple[int, int] = (500, 200)
+    scale: float = 1.0
+    opacity: float = 1.0
+    hide: bool = True
+
+
 @Component(tags=["char_manager", "chars"])
 class CharacterManager:
     def __init__(self, characters: list[Character]) -> None:
@@ -70,8 +81,8 @@ class CharacterManager:
         for char in characters:
             self.characters[char._name] = char
         self.set_textures()
-        self.visible = set()
-        self.visible_temporary = set()
+        self.visible = {}
+        self.visible_temporary = {}
         self.auto_speaker_portraits = True
 
     def set_textures(self) -> None:
@@ -107,11 +118,17 @@ class CharacterManager:
             mood: str | None = None,
             pos: tuple[int, int] | None = None
     ) -> None:
-        self._show(self.visible, image, mood, pos)
+        img = ImageDef(
+            name=image,
+            mood=mood,
+            pos=pos or (500, 200),
+        )
+        self._show(self.visible, img)
 
     def hide(self, image: str) -> None:
-        print(self.visible)
-        self.visible.remove(image)
+        image = image.capitalize()
+        if image in self.visible:
+            del self.visible[image]
 
     def reset(self) -> None:
         self.visible.clear()
@@ -125,37 +142,44 @@ class CharacterManager:
             mood: str | None = None,
             pos: tuple[int, int] | None = None
     ) -> None:
-        self._show(self.visible_temporary, image, mood, pos)
+        img = ImageDef(
+            name=image,
+            mood=mood,
+            pos=pos or (500, 200),
+        )
+        self._show(self.visible_temporary, img)
 
     def _show(
             self,
-            images: set[str],
-            image: str,
-            mood: str | None,
-            pos: tuple[int, int] | None
+            images: dict[str, ImageDef],
+            image: ImageDef,
     ) -> None:
-        mood_tex_info = None
-        if mood:
-            mood_tex_info = self.textures.get(f"{image}_{mood}".capitalize())
+        if image.mood:
+            mood = f"{image.name}_{image.mood}"
+            mood_tex_info = self.textures.get(mood.capitalize())
+            if not mood_tex_info:
+                image.mood = None
+                self.logger.warn(f"Tried to show missing mood: {mood}")
+            else:
+                image.mood = mood.capitalize()
 
-        tex_info = self.textures.get(image.capitalize())
+        if not image.mood:
+            tex_info = self.textures.get(image.name.capitalize())
 
-        if not tex_info:
-            self.logger.warn(f"Tried to show missing image: {image}")
-            return
+            if not tex_info:
+                self.logger.warn(f"Tried to show missing image: {image}")
+                return
+        image.name = image.name.capitalize()
+        images[image.name] = image
 
-        if pos is not None:
-            tex_info["pos"] = pos
-
-        if mood_tex_info:
-            mood_tex_info["pos"] = pos
-            images.add(f"{image}_{mood}")
-            return
-
-        images.add(image)
-
-    def get_texture(self, image: str) -> None | Texture2D:
-        img = self.textures.get(image)
+    def get_texture(self, name: str) -> None | Texture2D:
+        image = self.visible.get(name)
+        if not image:
+            image = self.visible_temporary.get(name)
+        if not image:
+            return None
+        name = image.mood or image.name
+        img = self.textures.get(name)
         if not img:
             return None
         if not img.get('texture'):
