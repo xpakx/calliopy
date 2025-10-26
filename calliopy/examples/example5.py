@@ -42,6 +42,7 @@ class Erwin(Character):
 
 @Scene()
 def start(dial, alice: Alice, bob: Bob, celeste: Celeste, diana):
+    alice.emote("surprised")
     alice.say("Huh?")
     celeste.say("'tis but a test.")
     diana.say("A test?")
@@ -65,6 +66,8 @@ def images(dial, chars, erwin: Erwin):
     chars.hide("bob")
     chars.show("alice", pos=(0, 200))
     dial.narrate("Alice")
+    chars.show("alice", mood="happy", pos=(0, 200))
+    chars.show("bob")
     erwin.say("Interesting...")
 
 

@@ -3,7 +3,6 @@ from calliopy.core.frontend import DialogueManager
 from calliopy.logger.logger import LoggerFactory
 from calliopy.core.raylib import load_texture, unload_texture, Texture2D
 from pathlib import Path
-from typing import Any
 from dataclasses import dataclass
 
 
@@ -57,6 +56,9 @@ class Character:
     def __repr__(self):
         return f"<Character name={self._name!r}>"
 
+    def emote(self, mood: str):
+        self._mood = mood
+
 
 @dataclass
 class ImageDef:
@@ -67,6 +69,7 @@ class ImageDef:
     opacity: float = 1.0
     hide: bool = False
     temporary: bool = False
+    resolved_texture_name: str | None = None
 
 
 @Component(tags=["char_manager", "chars"])
@@ -165,7 +168,11 @@ class CharacterManager:
                 image.mood = None
                 self.logger.warn(f"Tried to show missing mood: {mood}")
             else:
-                image.mood = mood.capitalize()
+                image.resolved_texture_name = mood.capitalize()
+                if not image.temporary:
+                    char = self.characters.get(image.name.capitalize())
+                    if char:
+                        char._mood = image.mood
 
         if not image.mood:
             tex_info = self.textures.get(image.name.capitalize())
@@ -173,14 +180,16 @@ class CharacterManager:
             if not tex_info:
                 self.logger.warn(f"Tried to show missing image: {image}")
                 return
+
+            image.resolved_texture_name = image.name.capitalize()
         image.name = image.name.capitalize()
         self.visible[image.name] = image
 
     def get_texture(self, name: str) -> None | Texture2D:
         image = self.visible.get(name)
-        if not image:
+        if not image or not image.resolved_texture_name:
             return None
-        name = image.mood or image.name
+        name = image.resolved_texture_name
         img = self.textures.get(name)
         if not img:
             return None
