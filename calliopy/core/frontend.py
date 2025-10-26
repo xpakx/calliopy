@@ -134,10 +134,7 @@ class CalliopyFrontend:
             end_drawing()
 
         self.dial.cancel()  # TODO: do for all components
-
-        for c in self.chars.textures.values():
-            if c.get('texture'):
-                unload_texture(c['texture'])
+        self.chars.unload_all()
         unload_texture(bg)
 
         close_window()

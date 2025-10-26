@@ -1,7 +1,7 @@
 from calliopy.core.annotations import Component, Inject
 from calliopy.core.frontend import DialogueManager
 from calliopy.logger.logger import LoggerFactory
-from calliopy.core.raylib import load_texture, Texture2D
+from calliopy.core.raylib import load_texture, unload_texture, Texture2D
 from pathlib import Path
 
 
@@ -139,3 +139,8 @@ class CharacterManager:
         if not img or img.get('texture'):
             return
         img['texture'] = load_texture(img["image"])
+
+    def unload_all(self) -> None:
+        for c in self.textures.values():
+            if c.get('texture'):
+                unload_texture(c['texture'])
