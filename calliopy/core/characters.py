@@ -65,7 +65,8 @@ class ImageDef:
     pos: tuple[int, int] = (500, 200)
     scale: float = 1.0
     opacity: float = 1.0
-    hide: bool = True
+    hide: bool = False
+    temporary: bool = False
 
 
 @Component(tags=["char_manager", "chars"])
@@ -82,7 +83,6 @@ class CharacterManager:
             self.characters[char._name] = char
         self.set_textures()
         self.visible = {}
-        self.visible_temporary = {}
         self.auto_speaker_portraits = True
 
     def set_textures(self) -> None:
@@ -123,7 +123,7 @@ class CharacterManager:
             mood=mood,
             pos=pos or (500, 200),
         )
-        self._show(self.visible, img)
+        self._show(img)
 
     def hide(self, image: str) -> None:
         image = image.capitalize()
@@ -134,7 +134,11 @@ class CharacterManager:
         self.visible.clear()
 
     def reset_temp(self) -> None:
-        self.visible_temporary.clear()
+        new_visible = {}
+        for key, value in self.visible.items():
+            if not value.temporary:
+                new_visible[key] = value
+        self.visible = new_visible
 
     def show_temp(
             self,
@@ -146,12 +150,12 @@ class CharacterManager:
             name=image,
             mood=mood,
             pos=pos or (500, 200),
+            temporary=True
         )
-        self._show(self.visible_temporary, img)
+        self._show(img)
 
     def _show(
             self,
-            images: dict[str, ImageDef],
             image: ImageDef,
     ) -> None:
         if image.mood:
@@ -170,12 +174,10 @@ class CharacterManager:
                 self.logger.warn(f"Tried to show missing image: {image}")
                 return
         image.name = image.name.capitalize()
-        images[image.name] = image
+        self.visible[image.name] = image
 
     def get_texture(self, name: str) -> None | Texture2D:
         image = self.visible.get(name)
-        if not image:
-            image = self.visible_temporary.get(name)
         if not image:
             return None
         name = image.mood or image.name
@@ -206,7 +208,7 @@ class CharacterManager:
             if c.get('texture'):
                 unload_texture(c['texture'])
 
-    def get_character_color(self, name: str) -> Any:
+    def get_character_color(self, name: str) -> int | None:
         char = self.characters.get(name)
         if not char:
             return None

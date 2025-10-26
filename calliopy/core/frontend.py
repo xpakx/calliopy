@@ -63,15 +63,6 @@ class CalliopyFrontend:
         )
 
     def draw_speaker(self):
-        # TODO: try to load new textures
-        for key, value in self.chars.visible_temporary.items():
-            c = self.chars.get_texture(key.capitalize())
-            if c is None:
-                continue
-            tex = c['texture']
-            pos = value.pos
-            draw_texture(tex, pos[0], pos[1], WHITE)
-
         for key, value in self.chars.visible.items():
             c = self.chars.get_texture(key.capitalize())
             if c is None:
