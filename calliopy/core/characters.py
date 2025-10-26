@@ -104,9 +104,10 @@ class CharacterManager:
     def show(
             self,
             image: str,
+            mood: str | None = None,
             pos: tuple[int, int] | None = None
     ) -> None:
-        self._show(self.visible, image, pos)
+        self._show(self.visible, image, mood, pos)
 
     def hide(self, image: str) -> None:
         print(self.visible)
@@ -121,23 +122,35 @@ class CharacterManager:
     def show_temp(
             self,
             image: str,
+            mood: str | None = None,
             pos: tuple[int, int] | None = None
     ) -> None:
-        self._show(self.visible_temporary, image, pos)
+        self._show(self.visible_temporary, image, mood, pos)
 
     def _show(
             self,
             images: set[str],
             image: str,
+            mood: str | None,
             pos: tuple[int, int] | None
     ) -> None:
+        mood_tex_info = None
+        if mood:
+            mood_tex_info = self.textures.get(f"{image}_{mood}".capitalize())
+
         tex_info = self.textures.get(image.capitalize())
+
         if not tex_info:
             self.logger.warn(f"Tried to show missing image: {image}")
             return
 
         if pos is not None:
             tex_info["pos"] = pos
+
+        if mood_tex_info:
+            mood_tex_info["pos"] = pos
+            images.add(f"{image}_{mood}")
+            return
 
         images.add(image)
 
