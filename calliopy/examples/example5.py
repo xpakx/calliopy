@@ -64,15 +64,7 @@ def images(dial, chars, erwin: Erwin):
     chars.hide("bob")
     chars.show("alice", pos=(0, 200))
     dial.narrate("Alice")
-    erwin.say("Intersting...")
-
-
-@Scene()
-def end(dial, alice: Alice, bob: Bob, celeste: Celeste, diana):
-    alice.say("Huh?")
-    celeste.say("'tis but a test.")
-    diana.say("A test?")
-    bob.say("Indeed it is.")
+    erwin.say("Interesting...")
 
 
 if __name__ == "__main__":

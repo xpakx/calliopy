@@ -65,7 +65,7 @@ class CalliopyFrontend:
     def draw_speaker(self):
         # TODO: try to load new textures
         for visible_image in self.chars.visible_temporary:
-            c = self.chars.textures.get(visible_image.capitalize())
+            c = self.chars.get_texture(visible_image.capitalize())
             if c is None:
                 continue
             tex = c['texture']
@@ -73,7 +73,7 @@ class CalliopyFrontend:
             draw_texture(tex, pos[0], pos[1], WHITE)
 
         for visible_image in self.chars.visible:
-            c = self.chars.textures.get(visible_image.capitalize())
+            c = self.chars.get_texture(visible_image.capitalize())
             if c is None:
                 continue
             tex = c['texture']
@@ -92,8 +92,6 @@ class CalliopyFrontend:
         set_target_fps(60)
 
         bg = load_texture(self.chars.bg_texture)
-        for c in self.chars.textures.values():
-            c['texture'] = load_texture(c["image"])
 
         DIAL_COLOR = 0x88000000
 
