@@ -140,6 +140,13 @@ class CharacterManager:
             return
         img['texture'] = load_texture(img["image"])
 
+    def unload(self, image: str) -> None:
+        img = self.textures.get(image)
+        if not img or img.get('texture'):
+            return
+        if img.get('texture'):
+            unload_texture(img['texture'])
+
     def unload_all(self) -> None:
         for c in self.textures.values():
             if c.get('texture'):
