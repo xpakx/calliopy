@@ -127,6 +127,7 @@ class CalliopyFrontend:
                     col = self.chars.get_character_color(self.dial.speaker)
                     if col is not None:
                         txt_col = col
+                self.chars.update_moods_from_chars()
 
             end_drawing()
 

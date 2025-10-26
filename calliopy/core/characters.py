@@ -27,6 +27,7 @@ class Character:
     @Inject()
     def set_dialogue(self, dial: DialogueManager) -> None:
         self.dial = dial
+        self._mood = None
 
     def say(self, text: str) -> None:
         self.dial.say(self._name, text)
@@ -222,3 +223,17 @@ class CharacterManager:
         if not char:
             return None
         return char._color
+
+    def update_moods_from_chars(self) -> None:
+        for image in self.visible.values():
+            if image.temporary and image.mood:
+                continue
+            char = self.characters[image.name]
+            if not char or not char._mood or char._mood == image.mood:
+                continue
+
+            mood = f"{image.name}_{char._mood}"
+            mood_tex_info = self.textures.get(mood.capitalize())
+            if not mood_tex_info:
+                continue
+            image.resolved_texture_name = mood.capitalize()

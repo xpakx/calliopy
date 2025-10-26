@@ -44,6 +44,7 @@ class Erwin(Character):
 def start(dial, alice: Alice, bob: Bob, celeste: Celeste, diana):
     alice.emote("surprised")
     alice.say("Huh?")
+    alice.emote(None)
     celeste.say("'tis but a test.")
     diana.say("A test?")
     bob.say("Indeed it is.")
