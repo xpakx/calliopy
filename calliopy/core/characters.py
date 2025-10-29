@@ -228,7 +228,7 @@ class CharacterManager:
         for image in self.visible.values():
             if image.temporary and image.mood:
                 continue
-            char = self.characters[image.name]
+            char = self.characters.get(image.name)
             if not char or not char._mood or char._mood == image.mood:
                 continue
 
