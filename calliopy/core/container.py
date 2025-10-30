@@ -31,7 +31,6 @@ class ComponentData:
 
 class CalliopyContainer:
     def __init__(self):
-        self.scenes = []
         self.components_by_class = {}
         self.names = set()
         self.components_by_tag = {}
@@ -41,12 +40,8 @@ class CalliopyContainer:
         comp_orig_name = get_type_name(component)
         if comp_orig_name in self.names:
             return
-        constructable = True
-        if "Scene" in self.get_decorators(component):
-            self.logger.debug(comp_orig_name, self.get_decorators(component)["Scene"])
-            constructable = False
-            self.logger.debug(comp_orig_name)
-            self.scenes.append(component)
+        comp_dec = self.get_decorators(component).get('Component', {})
+        constructable = comp_dec.get('constructable', True)
         self.logger.debug(component.__name__)
 
         component_name: str | None = None
@@ -83,7 +78,6 @@ class CalliopyContainer:
         if component_resolved_type is not None:
             comp_data.setters = self.get_setters(component_resolved_type)
 
-        comp_dec = self.get_decorators(component).get('Component', {})
         tags = comp_dec.get('tags', [])
         self.add_component(comp_data, component_name, component_resolved_type, tags)
         self.names.add(comp_orig_name)  # TODO: use orig_name as tag

@@ -13,10 +13,21 @@ class ScriptManager:
         self.init_scenes()
 
     def init_scenes(self):
-        self.scenes = self.container.scenes
+        self.set_scenes()
         self.logger.debug(self.scenes)
+        self.logger.debug(self.container.components_by_class)
+        self.logger.debug(self.container.components_by_tag)
         self.scenes.sort(key=lambda s: s.__calliopy_decorators__["Scene"]["num"])
         self.tag = None
+
+    def set_scenes(self):
+        self.scenes = []
+        for comp_list in self.container.components_by_class.values():
+            for comp_data in comp_list:
+                if comp_data.constructable:
+                    continue
+                if "Scene" in self.container.get_decorators(comp_data.component_class):
+                    self.scenes.append(comp_data.component_class)
 
     def get_next_scene(self, tag):
         if self.dial._abort:

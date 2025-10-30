@@ -5,6 +5,7 @@ from calliopy.core.container import (
         CalliopyContainer, ComponentData, get_type_name
 )
 from calliopy.core.annotations import Scene, Component
+from calliopy.core.script import ScriptManager
 
 
 @Component()
@@ -47,7 +48,9 @@ class Tagged:
 
 @pytest.fixture
 def script():
-    return CalliopyContainer()
+    container = CalliopyContainer()
+    container.register(ScriptManager)
+    return container
 
 
 def test_register_class_component(script):
@@ -100,8 +103,9 @@ def test_tag_wrong_type_returns_none(script):
 def test_scene_registration(script):
     script.register(scene1)
     script.register(scene2)
-    assert scene1 in script.scenes
-    assert scene2 in script.scenes
+    scenes = script.get_component(None, "script_manager").scenes
+    assert scene1 in scenes
+    assert scene2 in scenes
 
 
 def test_scene_execution_order(script):
@@ -118,11 +122,11 @@ def test_scene_execution_order(script):
     script.register(s1)
     script.register(s2)
 
-    script.init_scenes()
+    scenes = script.get_component(None, "script_manager")
     end = False
     tag = None
     while not end:
-        scene, kwargs = script.get_next_scene(tag)
+        scene, kwargs = scenes.get_next_scene(tag)
         if scene is None:
             end = True
         else:
