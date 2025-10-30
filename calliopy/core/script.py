@@ -181,7 +181,11 @@ class CalliopyScript:
     def get_decorators(self, cls) -> dict[str]:
         return getattr(cls,  "__calliopy_decorators__", {})
 
-    def get_component(self, type_name: str | None, tag: str | None = None) -> ComponentData | None:
+    def get_component(
+            self,
+            type_name: str | None,
+            tag: str | None = None
+    ) -> ComponentData | None:
         self.logger.debug("getting component", type_name, tag)
         if tag:
             self.logger.debug(self.components_by_tag.get(tag))
@@ -190,8 +194,9 @@ class CalliopyScript:
                 self.logger.debug("Tag found")
                 class_name = get_type_name(comp_data.component_class)
                 if type_name is not None and type_name != class_name:
-                    self.logger.warn("Tagged component of wrong type")
-                    return None
+                    if not self.is_type_subclass(comp_data, type_name):
+                        self.logger.warn("Tagged component of wrong type")
+                        return None
                 if comp_data.component is None and comp_data.constructable:
                     comp_data.component = self.construct_component(comp_data)
                 return comp_data.component
@@ -294,6 +299,16 @@ class CalliopyScript:
             )
             setters.append(data)
         return setters
+
+    # TODO: not ideal, we should probably just pass type to get_component
+    def is_type_subclass(self, component: ComponentData, type_name: str) -> bool:
+        for tp in component.component_class.__mro__:
+            if tp == object:
+                continue
+            sub_name = get_type_name(tp)
+            if sub_name == type_name:
+                return True
+        return False
 
 
 def get_type_name(cls: type) -> str:

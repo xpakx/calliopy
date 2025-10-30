@@ -39,8 +39,13 @@ class FrontendConfig:
 @Component(tags="frontend")
 class CalliopyFrontend:
 
-    def __init__(self, front_config, dial, scene_scheduler, char_manager):
-        # TODO: better to just resolve tagged subclasses correctly
+    def __init__(
+            self,
+            front_config: FrontendConfig,
+            dial,
+            scene_scheduler,
+            char_manager
+    ):
         if not issubclass(front_config.__class__, FrontendConfig):
             raise Exception("Frontend config must extend FrontendConfig class")
         self.screen_width = front_config.width

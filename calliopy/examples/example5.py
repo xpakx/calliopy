@@ -1,7 +1,14 @@
 from calliopy.core.annotations import Scene, Component
 from calliopy.core.app import CalliopyApp
 from calliopy.core.characters import Character
+from calliopy.core.frontend import FrontendConfig
 from dataclasses import dataclass
+
+
+@Component(tags="front_config")
+@dataclass
+class Conf(FrontendConfig):
+    width: int = 1000
 
 
 @Component()
