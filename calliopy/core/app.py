@@ -30,7 +30,6 @@ class CalliopyApp:
     def run(self) -> None:
         self.frontend = self.container.get_component(None, "frontend")
         self.container.init_scenes()
-        self.frontend.set_script(self.container)
         self.frontend.run()
 
     def load_module(self, module_name: str) -> None:

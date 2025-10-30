@@ -245,6 +245,8 @@ class CalliopyScript:
         return component
 
     def construct_dependency(self, dep: DependencyData) -> Any:
+        if dep.dep_type == get_type_name(type(self)):
+            return self
         if dep.list_of:
             dep_list = self.components_by_class.get(dep.dep_type, [])
             dep_instance = []
