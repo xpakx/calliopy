@@ -118,7 +118,6 @@ def test_scene_execution_order(script):
     script.register(s1)
     script.register(s2)
 
-    script.get_dial()
     script.init_scenes()
     end = False
     tag = None

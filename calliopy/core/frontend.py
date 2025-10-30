@@ -11,6 +11,7 @@ from calliopy.core.raylib import Rectangle, Vector2
 from calliopy.core.annotations import Component
 from calliopy.logger.logger import LoggerFactory
 from greenlet import greenlet
+from dataclasses import dataclass
 
 log_level = {
         1: "TRACE", 2: "DEBUG", 3: "INFO",
@@ -27,25 +28,30 @@ def get_raylib_logger():
     return trace_callback
 
 
+@Component(tags="front_config")
+@dataclass
+class FrontendConfig:
+    width: int = 800
+    height: int = 600
+    font_size = 24
+
+
+@Component(tags="frontend")
 class CalliopyFrontend:
-    def __init__(self, width=800, height=600, font_size=24):
-        self.screen_width = width
-        self.screen_height = height
-        self.font_size = font_size
-        self.scheduler = None
-        self.dial = None
 
-    def set_dialogue_manager(self, dial):
+    def __init__(self, front_config, dial, scene_scheduler, char_manager):
+        # TODO: better to just resolve tagged subclasses correctly
+        if not issubclass(front_config.__class__, FrontendConfig):
+            raise Exception("Frontend config must extend FrontendConfig class")
+        self.screen_width = front_config.width
+        self.screen_height = front_config.height
+        self.font_size = front_config.font_size
+        self.scheduler = scene_scheduler
         self.dial = dial
-
-    def set_scheduler(self, scheduler):
-        self.scheduler = scheduler
+        self.chars = char_manager
 
     def set_script(self, script):
         self.script = script
-
-    def set_character_manager(self, manager):
-        self.chars = manager
 
     def draw_background(self, bg):
         clear_background(RAYWHITE)

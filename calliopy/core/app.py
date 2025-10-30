@@ -5,7 +5,6 @@ import sys
 import pkgutil
 from typing import Any, List, Type, Tuple
 from types import ModuleType
-from calliopy.core.frontend import CalliopyFrontend
 from calliopy.core.script import CalliopyScript
 from calliopy.logger.logger import LoggerFactory
 
@@ -29,14 +28,8 @@ class CalliopyApp:
         return inspect.getmembers(module, inspect.isfunction)
 
     def run(self) -> None:
-        self.frontend = CalliopyFrontend()
-        dialogue = self.container.get_dial()
-        scheduler = self.container.get_scheduler()
-        chars = self.container.get_component(None, "char_manager")
+        self.frontend = self.container.get_component(None, "frontend")
         self.container.init_scenes()
-        self.frontend.set_dialogue_manager(dialogue)
-        self.frontend.set_scheduler(scheduler)
-        self.frontend.set_character_manager(chars)
         self.frontend.set_script(self.container)
         self.frontend.run()
 

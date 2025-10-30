@@ -45,6 +45,7 @@ class CalliopyScript:
         self.logger.debug(self.scenes)
         self.scenes.sort(key=lambda s: s.__calliopy_decorators__["Scene"]["num"])
         self.tag = None
+        self.dial = self.get_component(None, "dial")
 
     def get_next_scene(self, tag):
         if self.dial._abort:
@@ -63,10 +64,6 @@ class CalliopyScript:
         scene = self.scenes[self.current]
         self.current += 1
         return scene
-
-    def get_dial(self):
-        self.dial = self.get_component(None, "dial")
-        return self.dial
 
     def get_scheduler(self):
         return self.get_component(None, "scene_scheduler")
