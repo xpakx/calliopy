@@ -9,7 +9,7 @@ from calliopy.core.raylib import (
 from calliopy.core.raylib import WHITE, RAYWHITE, KEY_ENTER
 from calliopy.core.raylib import Rectangle, Vector2
 from calliopy.core.annotations import Component
-from calliopy.core.script import CalliopyScript
+from calliopy.core.script import ScriptManager
 from calliopy.logger.logger import LoggerFactory
 from greenlet import greenlet
 from dataclasses import dataclass
@@ -46,7 +46,7 @@ class CalliopyFrontend:
             dial,
             scene_scheduler,
             char_manager,
-            script: CalliopyScript
+            script: ScriptManager,
     ):
         if not issubclass(front_config.__class__, FrontendConfig):
             raise Exception("Frontend config must extend FrontendConfig class")

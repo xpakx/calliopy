@@ -1,8 +1,8 @@
 import pytest
 from utils import ScriptableDialogueManager
 
-from calliopy.core.script import (
-        CalliopyScript, ComponentData, get_type_name
+from calliopy.core.container import (
+        CalliopyContainer, ComponentData, get_type_name
 )
 from calliopy.core.annotations import Scene, Component
 
@@ -47,7 +47,7 @@ class Tagged:
 
 @pytest.fixture
 def script():
-    return CalliopyScript()
+    return CalliopyContainer()
 
 
 def test_register_class_component(script):

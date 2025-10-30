@@ -9,6 +9,7 @@ from dataclasses import dataclass
 @dataclass
 class Conf(FrontendConfig):
     width: int = 1000
+    height: int = 800
 
 
 @Component()

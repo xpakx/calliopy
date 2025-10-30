@@ -5,7 +5,7 @@ import sys
 import pkgutil
 from typing import Any, List, Type, Tuple
 from types import ModuleType
-from calliopy.core.script import CalliopyScript
+from calliopy.core.container import CalliopyContainer
 from calliopy.logger.logger import LoggerFactory
 
 
@@ -17,7 +17,7 @@ class CalliopyApp:
         self.logger = LoggerFactory.get_logger()
         if module_name is None:
             module_name = '__main__'
-        self.container = CalliopyScript()
+        self.container = CalliopyContainer()
         self.load_module("calliopy.core")
         self.load_module(module_name)
 
@@ -29,7 +29,6 @@ class CalliopyApp:
 
     def run(self) -> None:
         self.frontend = self.container.get_component(None, "frontend")
-        self.container.init_scenes()
         self.frontend.run()
 
     def load_module(self, module_name: str) -> None:
