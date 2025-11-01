@@ -87,6 +87,34 @@ TRACELOGCALLBACK = ctypes.CFUNCTYPE(None, ctypes.c_int, ctypes.c_char_p)
 forwarder.SetPythonTraceCallback.argtypes = [TRACELOGCALLBACK]
 forwarder.SetPythonTraceCallback.restype = None
 
+
+class Sound(ctypes.Structure):
+    _fields_ = [
+        ("stream", ctypes.c_ulonglong),  # AudioStream (opaque pointer-ish)
+        ("frameCount", ctypes.c_uint),
+        ("volume", ctypes.c_float),
+        ("pitch", ctypes.c_float),
+        ("pan", ctypes.c_float),
+    ]
+
+raylib.InitAudioDevice.argtypes = []
+raylib.InitAudioDevice.restype = None
+
+raylib.CloseAudioDevice.argtypes = []
+raylib.CloseAudioDevice.restype = None
+
+raylib.SetMasterVolume.argtypes = [ctypes.c_float]
+raylib.SetMasterVolume.restype = None
+
+raylib.LoadSound.argtypes = [ctypes.c_char_p]
+raylib.LoadSound.restype = Sound
+
+raylib.PlaySound.argtypes = [Sound]
+raylib.PlaySound.restype = None
+
+raylib.UnloadSound.argtypes = [Sound]
+raylib.UnloadSound.restype = None
+
 # Constants
 RAYWHITE = 0xFFFFFFFF
 BLACK = 0xFF000000
@@ -164,3 +192,27 @@ def draw_texture_pro(
 
 def set_trace_log_callback(func):
     forwarder.SetPythonTraceCallback(func)
+
+
+def init_audio_device() -> None:
+    raylib.InitAudioDevice()
+
+
+def close_audio_device() -> None:
+    raylib.CloseAudioDevice()
+
+
+def set_master_volume(vol: float) -> None:
+    raylib.SetMasterVolume(vol)
+
+
+def load_sound(path: str) -> Sound:
+    return raylib.LoadSound(bytes(path, "utf-8"))
+
+
+def play_sound(sound: Sound) -> None:
+    raylib.PlaySound(sound)
+
+
+def unload_sound(sound: Sound) -> None:
+    raylib.UnloadSound(sound)
