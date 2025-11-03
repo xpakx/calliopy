@@ -49,12 +49,13 @@ class Erwin(Character):
 
 
 @Scene()
-def start(dial, alice: Alice, bob: Bob, celeste: Celeste, diana):
+def start(dial, alice: Alice, bob: Bob, celeste: Celeste, diana, audio):
     alice.emote("surprised")
     alice.say("Huh?")
     alice.emote(None)
     celeste.say("'tis but a test.")
     diana.say("A test?")
+    audio.play("dialogue")
     bob.say("Indeed it is.")
 
 

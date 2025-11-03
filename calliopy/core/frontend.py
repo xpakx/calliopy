@@ -3,8 +3,7 @@ from calliopy.core.raylib import (
         clear_background, draw_texture_pro, draw_texture, draw_rectangle,
         draw_rectangle_lines, draw_text, close_window, unload_texture,
         init_window, load_texture, begin_drawing, end_drawing,
-        is_key_pressed, init_audio_device, set_master_volume,
-        close_audio_device, load_sound, unload_sound, play_sound,
+        is_key_pressed, play_sound,
         TRACELOGCALLBACK
 )
 from calliopy.core.raylib import WHITE, RAYWHITE, KEY_ENTER
@@ -12,6 +11,7 @@ from calliopy.core.raylib import Rectangle, Vector2
 from calliopy.core.annotations import Component
 from calliopy.core.script import ScriptManager
 from calliopy.logger.logger import LoggerFactory
+from calliopy.core.audio import AudioManager
 from greenlet import greenlet
 from dataclasses import dataclass
 
@@ -48,6 +48,7 @@ class CalliopyFrontend:
             scene_scheduler,
             char_manager,
             script: ScriptManager,
+            audio_manager: AudioManager,
     ):
         if not issubclass(front_config.__class__, FrontendConfig):
             raise Exception("Frontend config must extend FrontendConfig class")
@@ -58,6 +59,7 @@ class CalliopyFrontend:
         self.dial = dial
         self.chars = char_manager
         self.script = script
+        self.audio = audio_manager
 
     def draw_background(self, bg):
         clear_background(RAYWHITE)
@@ -94,9 +96,8 @@ class CalliopyFrontend:
         init_window(self.screen_width, self.screen_height, "Mini VN")
         set_target_fps(60)
 
-        init_audio_device()
-        set_master_volume(0.5)
-        test_sound = load_sound("files/dialogue.mp3")
+        self.audio.init_device()
+        self.audio.preload("dialogue", "files/dialogue.mp3")
 
         bg = load_texture(self.chars.bg_texture)
 
@@ -144,7 +145,9 @@ class CalliopyFrontend:
                     if col is not None:
                         txt_col = col
                 self.chars.update_moods_from_chars()
-                play_sound(test_sound)
+                to_play = self.audio.get_sound()
+                if to_play:
+                    play_sound(to_play)
 
             end_drawing()
 
@@ -152,8 +155,7 @@ class CalliopyFrontend:
         self.chars.unload_all()
         unload_texture(bg)
 
-        unload_sound(test_sound)
-        close_audio_device()
+        self.audio.destroy()
 
         close_window()
 
