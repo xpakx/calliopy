@@ -3,7 +3,8 @@ from calliopy.core.raylib import (
         clear_background, draw_texture_pro, draw_texture, draw_rectangle,
         draw_rectangle_lines, draw_text, close_window, unload_texture,
         init_window, load_texture, begin_drawing, end_drawing,
-        is_key_pressed,
+        is_key_pressed, init_audio_device, set_master_volume,
+        close_audio_device, load_sound, unload_sound, play_sound,
         TRACELOGCALLBACK
 )
 from calliopy.core.raylib import WHITE, RAYWHITE, KEY_ENTER
@@ -93,6 +94,10 @@ class CalliopyFrontend:
         init_window(self.screen_width, self.screen_height, "Mini VN")
         set_target_fps(60)
 
+        init_audio_device()
+        set_master_volume(0.5)
+        test_sound = load_sound("files/dialogue.mp3")
+
         bg = load_texture(self.chars.bg_texture)
 
         DIAL_COLOR = 0x88000000
@@ -139,12 +144,16 @@ class CalliopyFrontend:
                     if col is not None:
                         txt_col = col
                 self.chars.update_moods_from_chars()
+                play_sound(test_sound)
 
             end_drawing()
 
         self.dial.cancel()  # TODO: do for all components
         self.chars.unload_all()
         unload_texture(bg)
+
+        unload_sound(test_sound)
+        close_audio_device()
 
         close_window()
 
