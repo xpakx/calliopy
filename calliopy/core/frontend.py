@@ -124,6 +124,8 @@ class CalliopyFrontend:
                     proceed_scene = True
             if not self.scheduler.current:
                 proceed_scene = True
+            if self.dial.paused and is_key_pressed(KEY_ENTER):
+                proceed_scene = True
 
             if proceed_scene:
                 if self.scheduler.current and not self.scheduler.current.dead:
@@ -192,6 +194,7 @@ class DialogueManager:
         self.mood = None
         self.choice_result = None
         self.options = []
+        self.paused = None
 
     def say(self, speaker, text):
         if self._abort:
@@ -218,6 +221,15 @@ class DialogueManager:
         self.current_text = text
         self.scheduler.main.switch()
         self.current_text = ""
+
+    def pause(self):
+        self.paused = True
+        if self._abort:
+            return
+        self.speaker = None
+        self.current_text = None
+        self.scheduler.main.switch()
+        self.paused = False
 
     def cancel(self):
         self._abort = True

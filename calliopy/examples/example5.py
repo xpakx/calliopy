@@ -55,6 +55,7 @@ def start(dial, alice: Alice, bob: Bob, celeste: Celeste, diana, audio):
     alice.emote(None)
     celeste.say("'tis but a test.")
     diana.say("A test?")
+    dial.pause()
     audio.play("dialogue")
     bob.say("Indeed it is.")
 
