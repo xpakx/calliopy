@@ -33,14 +33,22 @@ raylib.SetTargetFPS.restype = None
 raylib.IsKeyPressed.argtypes = [ctypes.c_int]
 raylib.IsKeyPressed.restype = ctypes.c_bool
 
-raylib.DrawRectangle.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_uint]
+raylib.DrawRectangle.argtypes = [
+        ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_uint
+]
 raylib.DrawRectangle.restype = None
 
-raylib.DrawRectangleLines.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_uint]
+raylib.DrawRectangleLines.argtypes = [
+        ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_uint
+]
 raylib.DrawRectangleLines.restype = None
 
-raylib.DrawText.argtypes = [ctypes.c_char_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_uint]
+raylib.DrawText.argtypes = [
+        ctypes.c_char_p, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+        ctypes.c_uint
+]
 raylib.DrawText.restype = None
+
 
 class Texture2D(ctypes.Structure):
     _fields_ = [
@@ -51,10 +59,13 @@ class Texture2D(ctypes.Structure):
         ("format", ctypes.c_int)
     ]
 
+
 raylib.LoadTexture.argtypes = [ctypes.c_char_p]
 raylib.LoadTexture.restype = Texture2D
 
-raylib.DrawTexture.argtypes = [Texture2D, ctypes.c_int, ctypes.c_int, ctypes.c_uint]
+raylib.DrawTexture.argtypes = [
+        Texture2D, ctypes.c_int, ctypes.c_int, ctypes.c_uint
+]
 raylib.DrawTexture.restype = None
 
 raylib.UnloadTexture.argtypes = [Texture2D]
@@ -77,10 +88,14 @@ class Rectangle(ctypes.Structure):
     ]
 
 
-raylib.DrawTextureEx.argtypes = [Texture2D, Vector2, ctypes.c_float, ctypes.c_float, ctypes.c_uint]
+raylib.DrawTextureEx.argtypes = [
+        Texture2D, Vector2, ctypes.c_float, ctypes.c_float, ctypes.c_uint
+]
 raylib.DrawTextureEx.restype = None
 
-raylib.DrawTexturePro.argtypes = [Texture2D, Rectangle, Rectangle, Vector2, ctypes.c_float, ctypes.c_uint]
+raylib.DrawTexturePro.argtypes = [
+        Texture2D, Rectangle, Rectangle, Vector2, ctypes.c_float, ctypes.c_uint
+]
 raylib.DrawTexturePro.restype = None
 
 TRACELOGCALLBACK = ctypes.CFUNCTYPE(None, ctypes.c_int, ctypes.c_char_p)
@@ -90,12 +105,13 @@ forwarder.SetPythonTraceCallback.restype = None
 
 class Sound(ctypes.Structure):
     _fields_ = [
-        ("stream", ctypes.c_ulonglong),  # AudioStream (opaque pointer-ish)
+        ("stream", ctypes.c_ulonglong),
         ("frameCount", ctypes.c_uint),
         ("volume", ctypes.c_float),
         ("pitch", ctypes.c_float),
         ("pan", ctypes.c_float),
     ]
+
 
 raylib.InitAudioDevice.argtypes = []
 raylib.InitAudioDevice.restype = None
@@ -114,6 +130,12 @@ raylib.PlaySound.restype = None
 
 raylib.UnloadSound.argtypes = [Sound]
 raylib.UnloadSound.restype = None
+
+raylib.GetFrameTime.argtypes = []
+raylib.GetFrameTime.restype = ctypes.c_float
+
+raylib.DrawRectangleRec.argtypes = [Rectangle, ctypes.c_uint]
+raylib.DrawRectangleRec.restype = None
 
 # Constants
 RAYWHITE = 0xFFFFFFFF
@@ -138,47 +160,73 @@ _trace_callback = None
 def init_window(width: int, height: int, name: str) -> None:
     raylib.InitWindow(width, height, bytes(name, "utf-8"))
 
+
 def window_should_close() -> bool:
     return raylib.WindowShouldClose()
+
 
 def close_window() -> None:
     raylib.CloseWindow()
 
+
 def begin_drawing() -> None:
     raylib.BeginDrawing()
+
 
 def end_drawing() -> None:
     raylib.EndDrawing()
 
+
 def clear_background(color: int) -> None:
     raylib.ClearBackground(color)
+
 
 def set_target_fps(fps: int) -> None:
     raylib.SetTargetFPS(fps)
 
+
 def is_key_pressed(code: int) -> bool:
     return raylib.IsKeyPressed(code)
 
-def draw_rectangle(x: int, y: int, width: int, height: int, color: int) -> None:
+
+def draw_rectangle(
+        x: int, y: int, width: int, height: int, color: int
+) -> None:
     raylib.DrawRectangle(x, y, width, height, color)
 
-def draw_rectangle_lines(x: int, y: int, width: int, height: int, color: int) -> None:
+
+def draw_rectangle_lines(
+        x: int, y: int, width: int, height: int, color: int
+) -> None:
     raylib.DrawRectangleLines(x, y, width, height, color)
+
+
+def draw_rectangle_rec(rect: Rectangle, color: int) -> None:
+    raylib.DrawRectangleRec(rect, color)
+
 
 def draw_text(text: str, x: int, y: int, font_size: int, color: int) -> None:
     raylib.DrawText(bytes(text, "utf-8"), x, y, font_size, color)
 
+
 def load_texture(path: str) -> Texture2D:
     return raylib.LoadTexture(bytes(path, "utf-8"))
+
 
 def draw_texture(texture: Texture2D, x: int, y: int, color: int) -> None:
     raylib.DrawTexture(texture, x, y, color)
 
+
 def unload_texture(texture: Texture2D) -> None:
     raylib.UnloadTexture(texture)
 
-def draw_texture_ex(texture: Texture2D, pos: Vector2, rotation: float, scale: float, color: int) -> None:
+
+def draw_texture_ex(
+        texture: Texture2D, pos: Vector2, rotation: float, scale: float,
+        color: int
+) -> None:
     raylib.DrawTextureEx(texture, pos, rotation, scale, color)
+
 
 def draw_texture_pro(
     texture: Texture2D,
@@ -189,6 +237,7 @@ def draw_texture_pro(
     color: int
 ) -> None:
     raylib.DrawTexturePro(texture, src, dest, origin, rotation, color)
+
 
 def set_trace_log_callback(func):
     forwarder.SetPythonTraceCallback(func)
@@ -216,3 +265,7 @@ def play_sound(sound: Sound) -> None:
 
 def unload_sound(sound: Sound) -> None:
     raylib.UnloadSound(sound)
+
+
+def get_frame_time() -> float:
+    return raylib.GetFrameTime()
