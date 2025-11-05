@@ -21,13 +21,7 @@ class ScriptManager:
         self.tag = None
 
     def set_scenes(self):
-        self.scenes = []
-        for comp_list in self.container.components_by_class.values():
-            for comp_data in comp_list:
-                if comp_data.constructable:
-                    continue
-                if "Scene" in self.container.get_decorators(comp_data.component_class):
-                    self.scenes.append(comp_data.component_class)
+        self.scenes = self.container.get_functions_with_decorator("Scene")
 
     def get_next_scene(self, tag):
         if self.dial._abort:

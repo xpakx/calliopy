@@ -275,6 +275,26 @@ class CalliopyContainer:
                 return True
         return False
 
+    def get_components_by_predicate(
+            self,
+            predicate: Callable[[type], bool],
+            constructable: bool | None = None
+    ) -> list[Callable]:
+        results = []
+        for comp_list in self.components_by_class.values():
+            for comp_data in comp_list:
+                if constructable is not None and comp_data.constructable != constructable:
+                    continue
+                if predicate(comp_data):
+                    results.append(comp_data.component_class)
+        return results
+
+    def get_functions_with_decorator(self, decorator: str) -> list[Callable]:
+        return self.get_components_by_predicate(
+            lambda comp: decorator in self.get_decorators(comp.component_class),
+            constructable=False
+        )
+
 
 def get_type_name(cls: type) -> str:
     return f"{cls.__module__}.{cls.__name__}"
