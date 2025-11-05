@@ -10,7 +10,6 @@ from dataclasses import dataclass
 class Conf(FrontendConfig):
     width: int = 1000
     height: int = 800
-    title: str = "Example 5"
 
 
 @Component()
@@ -59,7 +58,7 @@ def start(dial, alice: Alice, bob: Bob, celeste: Celeste, diana, audio):
     dial.pause()
     audio.play("dialogue")
     bob.say("Indeed it is.")
-    dial.pause(5)
+    dial.pause(5, True)
 
 
 @Scene()

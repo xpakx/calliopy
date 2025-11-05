@@ -44,6 +44,7 @@ class FrontendConfig:
 class Timer:
     name: str
     timer: float
+    blocking: bool = False
 
 
 @Component(tags="frontend")
@@ -99,7 +100,9 @@ class CalliopyFrontend:
         draw_rectangle_lines(50, 450, 700, 120, WHITE)
         draw_text(text, 60, 460, self.font_size, txt_col)
 
-    def process_timers(self, timers: list[Timer], dt: float) -> bool:
+    def process_timers(
+            self, timers: list[Timer], dt: float) -> tuple[bool, bool]:
+        blocking = False
         i = 0
         while i < len(timers):
             timer = timers[i]
@@ -108,10 +111,12 @@ class CalliopyFrontend:
                 timers[i] = timers[-1]
                 timers.pop()
                 if timer.name == "pause":
-                    return True
+                    return True, blocking
             else:
+                if timer.blocking:
+                    blocking = True
                 i += 1
-        return False
+        return False, blocking
 
     def run(self):
         trace_callback = TRACELOGCALLBACK(get_raylib_logger())
@@ -200,6 +205,7 @@ class CalliopyFrontend:
                     Timer(
                         timer=self.dial.pause_for,
                         name="pause",
+                        blocking=self.dial.blocking_pause,
                     )
             )
 
@@ -216,9 +222,11 @@ class CalliopyFrontend:
         if self.dial.paused and is_key_pressed(KEY_ENTER):
             proceed_scene = True
 
-        all_timers_finished = self.process_timers(timers, dt)
+        pause_ended, blocking = self.process_timers(timers, dt)
         if not proceed_scene:
-            proceed_scene = all_timers_finished
+            proceed_scene = pause_ended
+        if blocking:
+            proceed_scene = False
         return proceed_scene
 
 
@@ -256,6 +264,7 @@ class DialogueManager:
         self.options = []
         self.paused = None
         self.pause_for = 0
+        self.blocking_pause = False
 
     def say(self, speaker, text):
         if self._abort:
@@ -283,9 +292,13 @@ class DialogueManager:
         self.scheduler.main.switch()
         self.current_text = ""
 
-    def pause(self, seconds: int | float | None = None):
+    def pause(
+            self, seconds: int | float | None = None,
+            blocking: bool = False
+    ):
         self.paused = True
         self.pause_for = 0
+        self.blocking_pause = blocking
         if seconds is not None:
             self.pause_for = float(seconds)
         if self._abort:
@@ -295,6 +308,7 @@ class DialogueManager:
         self.scheduler.main.switch()
         self.paused = False
         self.pause_for = 0
+        self.blocking_pause = False
 
     def cancel(self):
         self._abort = True
