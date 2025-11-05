@@ -38,6 +38,13 @@ class FrontendConfig:
     font_size = 24
 
 
+# TODO: callbacks?
+@dataclass
+class Timer:
+    name: str
+    timer: float
+
+
 @Component(tags="frontend")
 class CalliopyFrontend:
 
@@ -90,11 +97,26 @@ class CalliopyFrontend:
         draw_rectangle_lines(50, 450, 700, 120, WHITE)
         draw_text(text, 60, 460, self.font_size, txt_col)
 
+    def process_timers(self, timers: list[Timer], dt: float) -> bool:
+        i = 0
+        while i < len(timers):
+            timer = timers[i]
+            timer.timer -= dt
+            if timer.timer <= 0:
+                timers[i] = timers[-1]
+                timers.pop()
+                if timer.name == "pause":
+                    return True
+            else:
+                i += 1
+        return False
+
     def run(self):
         trace_callback = TRACELOGCALLBACK(get_raylib_logger())
         set_trace_log_callback(trace_callback)
         init_window(self.screen_width, self.screen_height, "Mini VN")
         set_target_fps(60)
+        timers: list[Timer] = []
 
         self.audio.init_device()
         self.audio.preload("dialogue", "files/dialogue.mp3")
@@ -127,13 +149,13 @@ class CalliopyFrontend:
                 proceed_scene = True
             if self.dial.paused and is_key_pressed(KEY_ENTER):
                 proceed_scene = True
-            if self.dial.paused and self.dial.pause_for is not None:
-                if self.dial.pause_for > 0:
-                    self.dial.pause_for -= dt
-                if self.dial.pause_for <= 0:
-                    proceed_scene = True
+
+            timers_proceed = self.process_timers(timers, dt)
+            if not proceed_scene:
+                proceed_scene = timers_proceed
 
             if proceed_scene:
+                timers = []
                 if self.scheduler.current and not self.scheduler.current.dead:
                     self.scheduler.resume()
                 else:
@@ -156,6 +178,13 @@ class CalliopyFrontend:
                 to_play = self.audio.get_sound()
                 if to_play:
                     play_sound(to_play)
+                if self.dial.pause_for > 0:
+                    timers.append(
+                            Timer(
+                                timer=self.dial.pause_for,
+                                name="pause",
+                            )
+                    )
 
             end_drawing()
 
@@ -201,7 +230,7 @@ class DialogueManager:
         self.choice_result = None
         self.options = []
         self.paused = None
-        self.pause_for = None
+        self.pause_for = 0
 
     def say(self, speaker, text):
         if self._abort:
@@ -231,7 +260,7 @@ class DialogueManager:
 
     def pause(self, seconds: int | float | None = None):
         self.paused = True
-        self.pause_for = None
+        self.pause_for = 0
         if seconds is not None:
             self.pause_for = float(seconds)
         if self._abort:
@@ -240,7 +269,7 @@ class DialogueManager:
         self.current_text = None
         self.scheduler.main.switch()
         self.paused = False
-        self.pause_for = None
+        self.pause_for = 0
 
     def cancel(self):
         self._abort = True
