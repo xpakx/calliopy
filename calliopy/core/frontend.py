@@ -36,6 +36,7 @@ class FrontendConfig:
     width: int = 800
     height: int = 600
     font_size = 24
+    title: str = "Calliopy Visual Novel"
 
 
 # TODO: callbacks?
@@ -61,6 +62,7 @@ class CalliopyFrontend:
             raise Exception("Frontend config must extend FrontendConfig class")
         self.screen_width = front_config.width
         self.screen_height = front_config.height
+        self.window_title = front_config.title
         self.font_size = front_config.font_size
         self.scheduler = scene_scheduler
         self.dial = dial
@@ -114,7 +116,7 @@ class CalliopyFrontend:
     def run(self):
         trace_callback = TRACELOGCALLBACK(get_raylib_logger())
         set_trace_log_callback(trace_callback)
-        init_window(self.screen_width, self.screen_height, "Mini VN")
+        init_window(self.screen_width, self.screen_height, self.window_title)
         set_target_fps(60)
         timers: list[Timer] = []
 
@@ -138,53 +140,17 @@ class CalliopyFrontend:
             for i, opt in enumerate(self.dial.options):
                 draw_text(f"{i+1}. {opt}", 60, 500 + i*30, 24, WHITE)
 
-            proceed_scene = False
-            if self.dial.current_text and is_key_pressed(KEY_ENTER):
-                proceed_scene = True
-            for i in range(len(self.dial.options)):
-                if is_key_pressed(49+i):
-                    self.dial.choice_result = i
-                    proceed_scene = True
-            if not self.scheduler.current:
-                proceed_scene = True
-            if self.dial.paused and is_key_pressed(KEY_ENTER):
-                proceed_scene = True
-
-            timers_proceed = self.process_timers(timers, dt)
-            if not proceed_scene:
-                proceed_scene = timers_proceed
+            proceed_scene = self.tick(timers, dt)
 
             if proceed_scene:
                 timers = []
-                if self.scheduler.current and not self.scheduler.current.dead:
-                    self.scheduler.resume()
-                else:
-                    tag = self.scheduler.result
-                    new_scene, kwargs = self.script.get_next_scene(tag)
-                    if new_scene is None:
-                        break
-                    self.chars.reset()
-                    self.scheduler.run_scene(new_scene, **kwargs)
-                self.chars.reset_temp()
-                if self.chars.auto_speaker_portraits:
-                    if self.dial.speaker:
-                        self.chars.show_temp(self.dial.speaker)
-                txt_col = WHITE
-                if self.dial.speaker:
-                    col = self.chars.get_character_color(self.dial.speaker)
-                    if col is not None:
-                        txt_col = col
-                self.chars.update_moods_from_chars()
-                to_play = self.audio.get_sound()
-                if to_play:
-                    play_sound(to_play)
-                if self.dial.pause_for > 0:
-                    timers.append(
-                            Timer(
-                                timer=self.dial.pause_for,
-                                name="pause",
-                            )
-                    )
+                has_scene = self.resume_scene()
+                if not has_scene:
+                    break
+                self.change_portraits_for_scene()
+                txt_col = self.get_current_dialogue_color()
+                self.update_sounds()
+                self.update_timers(timers)
 
             end_drawing()
 
@@ -195,6 +161,65 @@ class CalliopyFrontend:
         self.audio.destroy()
 
         close_window()
+
+    def resume_scene(self) -> bool:
+        if self.scheduler.current and not self.scheduler.current.dead:
+            self.scheduler.resume()
+        else:
+            tag = self.scheduler.result
+            new_scene, kwargs = self.script.get_next_scene(tag)
+            if new_scene is None:
+                return False
+            self.chars.reset()
+            self.scheduler.run_scene(new_scene, **kwargs)
+        return True
+
+    def change_portraits_for_scene(self) -> None:
+        self.chars.reset_temp()
+        if self.chars.auto_speaker_portraits:
+            if self.dial.speaker:
+                self.chars.show_temp(self.dial.speaker)
+        self.chars.update_moods_from_chars()
+
+    def get_current_dialogue_color(self) -> int:
+        txt_col = WHITE
+        if self.dial.speaker:
+            col = self.chars.get_character_color(self.dial.speaker)
+            if col is not None:
+                txt_col = col
+        return txt_col
+
+    def update_sounds(self) -> None:
+        to_play = self.audio.get_sound()
+        if to_play:
+            play_sound(to_play)
+
+    def update_timers(self, timers: list[Timer]) -> None:
+        if self.dial.pause_for > 0:
+            timers.append(
+                    Timer(
+                        timer=self.dial.pause_for,
+                        name="pause",
+                    )
+            )
+
+    def tick(self, timers: list[Timer], dt: float) -> bool:
+        proceed_scene = False
+        if self.dial.current_text and is_key_pressed(KEY_ENTER):
+            proceed_scene = True
+        for i in range(len(self.dial.options)):
+            if is_key_pressed(49+i):
+                self.dial.choice_result = i
+                proceed_scene = True
+        if not self.scheduler.current:
+            proceed_scene = True
+        if self.dial.paused and is_key_pressed(KEY_ENTER):
+            proceed_scene = True
+
+        all_timers_finished = self.process_timers(timers, dt)
+        if not proceed_scene:
+            proceed_scene = all_timers_finished
+        return proceed_scene
 
 
 class ChoiceResult:
