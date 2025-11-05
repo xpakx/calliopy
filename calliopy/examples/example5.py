@@ -57,6 +57,7 @@ def start(dial, alice: Alice, bob: Bob, celeste: Celeste, diana, audio):
     diana.say("A test?")
     dial.pause()
     audio.play("dialogue")
+    dial.pause(5)
     bob.say("Indeed it is.")
 
 

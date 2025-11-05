@@ -3,7 +3,7 @@ from calliopy.core.raylib import (
         clear_background, draw_texture_pro, draw_texture, draw_rectangle,
         draw_rectangle_lines, draw_text, close_window, unload_texture,
         init_window, load_texture, begin_drawing, end_drawing,
-        is_key_pressed, play_sound,
+        is_key_pressed, play_sound, get_frame_time,
         TRACELOGCALLBACK
 )
 from calliopy.core.raylib import WHITE, RAYWHITE, KEY_ENTER
@@ -108,6 +108,7 @@ class CalliopyFrontend:
             begin_drawing()
             self.draw_background(bg)
             self.draw_speaker()
+            dt = get_frame_time()
 
             if self.dial.current_text:
                 self.draw_dialogue(self.dial.current_text, DIAL_COLOR, txt_col)
@@ -126,6 +127,11 @@ class CalliopyFrontend:
                 proceed_scene = True
             if self.dial.paused and is_key_pressed(KEY_ENTER):
                 proceed_scene = True
+            if self.dial.paused and self.dial.pause_for is not None:
+                if self.dial.pause_for > 0:
+                    self.dial.pause_for -= dt
+                if self.dial.pause_for <= 0:
+                    proceed_scene = True
 
             if proceed_scene:
                 if self.scheduler.current and not self.scheduler.current.dead:
@@ -195,6 +201,7 @@ class DialogueManager:
         self.choice_result = None
         self.options = []
         self.paused = None
+        self.pause_for = None
 
     def say(self, speaker, text):
         if self._abort:
@@ -222,14 +229,18 @@ class DialogueManager:
         self.scheduler.main.switch()
         self.current_text = ""
 
-    def pause(self):
+    def pause(self, seconds: int | float | None = None):
         self.paused = True
+        self.pause_for = None
+        if seconds is not None:
+            self.pause_for = float(seconds)
         if self._abort:
             return
         self.speaker = None
         self.current_text = None
         self.scheduler.main.switch()
         self.paused = False
+        self.pause_for = None
 
     def cancel(self):
         self._abort = True
