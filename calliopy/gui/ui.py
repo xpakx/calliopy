@@ -4,7 +4,7 @@ from calliopy.core.raylib import (
         draw_text,
         get_mouse_position, check_collision_point_rec,
 )
-from calliopy.gui.css.parser import CSSParser
+from calliopy.gui.parser.css import CSSParser
 
 
 class Style:
@@ -153,7 +153,7 @@ def _create_element(
 
 
 if __name__ == "__main__":
-    from calliopy.gui.css.parser import load_file
+    from calliopy.gui.parser.css import load_file
     from calliopy.core.raylib import (
         init_window, close_window, begin_drawing, end_drawing,
         clear_background, set_target_fps, window_should_close,
