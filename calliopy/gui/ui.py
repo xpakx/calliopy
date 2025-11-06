@@ -153,36 +153,31 @@ def _create_element(
 
 
 if __name__ == "__main__":
-    from calliopy.gui.parser.css import load_file
     from calliopy.core.raylib import (
         init_window, close_window, begin_drawing, end_drawing,
         clear_background, set_target_fps, window_should_close,
         BLACK
     )
+    from calliopy.gui.parser.layout import UIParser
+
+    def load_file(path):
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read()
+
     init_window(800, 600, "UI Menu Demo")
     set_target_fps(60)
 
     css = load_file("files/style.css")
     style = Style()
     style.parse(css)
-
-    button1 = Element("button", style, classes=['primary'])
-    button1.text = "Start Game"
-
-    button2 = Element("button", style)
-    button2.text = "Settings"
-
-    button3 = Element("button", style, classes=['danger'])
-    button3.text = "Exit"
-
-    vbox = VBox(style, [button1, button2, button3])
-    vbox.compute_layout(300, 200, 200, 400)
-    vbox.print()
+    text = load_file("files/layout.ui")
+    root = UIParser(text).body(style)
+    root.compute_layout(300, 200, 200, 400)
 
     while not window_should_close():
-        vbox.update()
+        root.update()
         begin_drawing()
         clear_background(BLACK)
-        vbox.draw()
+        root.draw()
         end_drawing()
     close_window()

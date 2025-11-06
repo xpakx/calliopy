@@ -75,12 +75,11 @@ class CSSParser:
         return elems
 
 
-def load_file(path):
-    with open(path, "r", encoding="utf-8") as f:
-        return f.read()
-
-
 if __name__ == "__main__":
+    def load_file(path):
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read()
+
     style = load_file("files/style.css")
     elems = CSSParser(style).style()
     for name, pairs in elems:
