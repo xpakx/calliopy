@@ -3,6 +3,8 @@ from calliopy.core.raylib import (
         draw_rectangle_rec,
         draw_text,
         get_mouse_position, check_collision_point_rec,
+        is_mouse_button_pressed,
+        MOUSE_BUTTON_LEFT,
 )
 from calliopy.gui.parser.css import CSSParser
 
@@ -102,6 +104,7 @@ class Element:
                 e.print(indent + 1)
 
 
+# -------- LAYOUTS -------- #
 class VBox(Element):
     def __init__(self, style, children=None):
         super().__init__("vbox", style, children=children)
@@ -127,6 +130,26 @@ class VBox(Element):
                 child.update()
 
 
+# -------- ELEMS -------- #
+class Button(Element):
+    def __init__(
+            self, text, style, classes=None, dispatcher=None, callback=None
+    ):
+        super().__init__("button", style, classes)
+        self.text = text
+        self.callback = callback
+        self.dispatcher = dispatcher
+        self.default_bg = "#555"
+
+    def update(self):
+        super().update()
+        if self.hover and is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+            if self.dispatcher:
+                self.dispatcher.dispatch_event(
+                        self.callback, self
+                )
+
+
 def _parse_color(hexstr: str) -> int:
     hexstr = hexstr.lstrip("#")
 
@@ -149,6 +172,8 @@ def _create_element(
 ):
     if tag == "vbox":
         return VBox(style)
+    elif tag == "button":
+        return Button("", style, classes, dispatcher, action)
     return Element(tag, style, classes)
 
 
@@ -164,6 +189,17 @@ if __name__ == "__main__":
         with open(path, "r", encoding="utf-8") as f:
             return f.read()
 
+    class EventDispatcher:
+        def __init__(self):
+            pass
+
+        def dispatch_event(self, name, owner, event=None):
+            print(f"Clicked {owner.text}, event {name}")
+            if event:
+                print(event)
+
+    dispatcher = EventDispatcher()
+
     init_window(800, 600, "UI Menu Demo")
     set_target_fps(60)
 
@@ -171,7 +207,7 @@ if __name__ == "__main__":
     style = Style()
     style.parse(css)
     text = load_file("files/layout.ui")
-    root = UIParser(text).body(style)
+    root = UIParser(text).body(style, dispatcher)
     root.compute_layout(300, 200, 200, 400)
 
     while not window_should_close():
