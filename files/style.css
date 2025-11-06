@@ -1,0 +1,41 @@
+button {
+	bg: #333;
+	fg: #eee;
+	width: 200;
+	height: 40;
+	radius: 6;
+}
+
+button:hover {
+	bg: #555;
+}
+
+button.primary {
+	bg: #347;
+	fg: #fff;
+}
+
+button.primary:hover {
+	bg: #468;
+}
+
+button.danger {
+	bg: #733;
+	fg: #fff;
+}
+
+button.danger:hover {
+	bg: #955;
+}
+
+vbox {
+	spacing: 10;
+}
+
+image {
+	width: 200;
+}
+
+vbox:hover {
+	spacing: 20;
+}
