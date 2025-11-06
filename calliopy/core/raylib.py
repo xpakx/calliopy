@@ -137,6 +137,15 @@ raylib.GetFrameTime.restype = ctypes.c_float
 raylib.DrawRectangleRec.argtypes = [Rectangle, ctypes.c_uint]
 raylib.DrawRectangleRec.restype = None
 
+raylib.GetMousePosition.argtypes = []
+raylib.GetMousePosition.restype = Vector2
+
+raylib.CheckCollisionPointRec.argtypes = [Vector2, Rectangle]
+raylib.CheckCollisionPointRec.restype = ctypes.c_bool
+
+raylib.IsMouseButtonPressed.argtypes = [ctypes.c_int]
+raylib.IsMouseButtonPressed.restype = ctypes.c_bool
+
 # Constants
 RAYWHITE = 0xFFFFFFFF
 BLACK = 0xFF000000
@@ -153,6 +162,10 @@ KEY_6 = 54
 KEY_7 = 55
 KEY_8 = 56
 KEY_9 = 57
+
+MOUSE_BUTTON_LEFT = 0
+MOUSE_BUTTON_RIGHT = 1
+MOUSE_BUTTON_MIDDLE = 2
 
 _trace_callback = None
 
@@ -269,3 +282,15 @@ def unload_sound(sound: Sound) -> None:
 
 def get_frame_time() -> float:
     return raylib.GetFrameTime()
+
+
+def get_mouse_position() -> Vector2:
+    return raylib.GetMousePosition()
+
+
+def check_collision_point_rec(pos: Vector2, rect: Rectangle) -> bool:
+    return raylib.CheckCollisionPointRec(pos, rect)
+
+
+def is_mouse_button_pressed(button: int) -> bool:
+    return raylib.IsMouseButtonPressed(button)
