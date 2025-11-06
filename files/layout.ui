@@ -1,5 +1,5 @@
 <vbox>
-    <image class="logo" src="files/logo.png"></image>
+    <image class="logo" src="files/bg_forest.png"></image>
     <button class="primary" onclick="new_game">Start</button>
     <button onclick="settings">Settings</button>
     <button class="danger" onclick="exit">Exit</button>

@@ -1,10 +1,11 @@
 from calliopy.core.raylib import (
-        Rectangle,
+        Rectangle, Vector2,
         draw_rectangle_rec,
         draw_text,
         get_mouse_position, check_collision_point_rec,
         is_mouse_button_pressed,
-        MOUSE_BUTTON_LEFT,
+        MOUSE_BUTTON_LEFT, RAYWHITE,
+        load_texture, unload_texture, draw_texture_ex,
 )
 from calliopy.gui.parser.css import CSSParser
 
@@ -150,6 +151,49 @@ class Button(Element):
                 )
 
 
+class Image(Element):
+    def __init__(self, style, classes=None, src=None):
+        super().__init__("image", style, classes)
+        self.src = src
+        self.texture = None
+        self.default_bg = None
+        self.default_fg = None
+
+    def compute_layout(self, x, y, available_w, available_h):
+        if self.src and self.texture is None:
+            self.texture = load_texture(self.src)
+        if self.texture.width == 0:
+            unload_texture(self.texture)
+            self.texture = None
+            self.src = None
+        if self.texture is None:
+            return
+
+        props = self.style.resolve(self)
+        w = int(props.get("width", "100"))
+        h = int(props.get("height", "0"))
+        if h == 0 and self.texture:
+            scale = w/self.texture.width
+            h = self.texture.height*scale
+        elif h == 0:
+            h = 100
+        self.rect = Rectangle(x, y, w, h)
+
+    def draw(self):
+        super().draw()
+        if self.texture:
+            draw_texture_ex(self.texture,
+                            Vector2(self.rect.x, self.rect.y),
+                            0,
+                            self.rect.width / self.texture.width,
+                            RAYWHITE)
+
+    def unload(self):
+        if self.texture:
+            unload_texture(self.texture)
+            self.texture = None
+
+
 def _parse_color(hexstr: str) -> int:
     hexstr = hexstr.lstrip("#")
 
@@ -174,6 +218,8 @@ def _create_element(
         return VBox(style)
     elif tag == "button":
         return Button("", style, classes, dispatcher, action)
+    elif tag == "image":
+        return Image(style, classes, src)
     return Element(tag, style, classes)
 
 
@@ -191,10 +237,12 @@ if __name__ == "__main__":
 
     class EventDispatcher:
         def __init__(self):
-            pass
+            self.exit = False
 
         def dispatch_event(self, name, owner, event=None):
             print(f"Clicked {owner.text}, event {name}")
+            if name == "exit":
+                self.exit = True
             if event:
                 print(event)
 
@@ -208,9 +256,9 @@ if __name__ == "__main__":
     style.parse(css)
     text = load_file("files/layout.ui")
     root = UIParser(text).body(style, dispatcher)
-    root.compute_layout(300, 200, 200, 400)
+    root.compute_layout(300, 150, 200, 400)
 
-    while not window_should_close():
+    while not window_should_close() and not dispatcher.exit:
         root.update()
         begin_drawing()
         clear_background(BLACK)
