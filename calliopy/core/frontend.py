@@ -8,12 +8,13 @@ from calliopy.core.raylib import (
 )
 from calliopy.core.raylib import WHITE, RAYWHITE, KEY_ENTER
 from calliopy.core.raylib import Rectangle, Vector2
-from calliopy.core.annotations import Component
+from calliopy.core.annotations import Component, Inject
 from calliopy.core.script import ScriptManager
 from calliopy.logger.logger import LoggerFactory
 from calliopy.core.audio import AudioManager
 from greenlet import greenlet
 from dataclasses import dataclass
+from abc import ABC, abstractmethod
 
 log_level = {
         1: "TRACE", 2: "DEBUG", 3: "INFO",
@@ -47,6 +48,33 @@ class Timer:
     blocking: bool = False
 
 
+class DrawableComponent(ABC):
+    @abstractmethod
+    def init(self) -> None:
+        """Initializes drawable component"""
+        pass
+
+    @abstractmethod
+    def destroy(self) -> None:
+        """Deinitializes drawable component"""
+        pass
+
+    @abstractmethod
+    def update(self) -> None:
+        """Updates drawable component before drawing"""
+        pass
+
+    @abstractmethod
+    def draw(self) -> None:
+        """Draws drawable component"""
+        pass
+
+    @abstractmethod
+    def is_active(self) -> bool:
+        """Return whether drawable should be updated and drawn"""
+        pass
+
+
 @Component(tags="frontend")
 class CalliopyFrontend:
 
@@ -58,6 +86,7 @@ class CalliopyFrontend:
             char_manager,
             script: ScriptManager,
             audio_manager: AudioManager,
+            gui,
     ):
         if not issubclass(front_config.__class__, FrontendConfig):
             raise Exception("Frontend config must extend FrontendConfig class")
@@ -70,6 +99,12 @@ class CalliopyFrontend:
         self.chars = char_manager
         self.script = script
         self.audio = audio_manager
+        self.gui = gui
+        self.drawables = []
+
+    @Inject()
+    def set_drawables(self, drawables: list[DrawableComponent]) -> None:
+        self.drawables = drawables
 
     def draw_background(self, bg):
         clear_background(RAYWHITE)
@@ -133,12 +168,22 @@ class CalliopyFrontend:
         DIAL_COLOR = 0x88000000
         txt_col = WHITE
 
+        # TODO: probably would be better to make this lazy
+        for drawable in self.drawables:
+            drawable.init()
+
         while not window_should_close():
+            for drawable in self.drawables:
+                if drawable.is_active():
+                    drawable.update()
             begin_drawing()
             self.draw_background(bg)
             self.draw_speaker()
             dt = get_frame_time()
 
+            for drawable in self.drawables:
+                if drawable.is_active():
+                    drawable.draw()
             if self.dial.current_text:
                 self.draw_dialogue(self.dial.current_text, DIAL_COLOR, txt_col)
 
@@ -162,6 +207,8 @@ class CalliopyFrontend:
         self.dial.cancel()  # TODO: do for all components
         self.chars.unload_all()
         unload_texture(bg)
+        for drawable in self.drawables:
+            drawable.destroy()
 
         self.audio.destroy()
 
