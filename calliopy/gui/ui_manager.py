@@ -3,7 +3,7 @@ from calliopy.core.container import CalliopyContainer
 from calliopy.core.annotations import Component
 
 
-@Component(tags=["ui_manager", "gui"])
+@Component(tags=["ui_manager", "gui_manager"])
 class UIManager:
     def __init__(self, container: CalliopyContainer):
         self.container = container
@@ -19,7 +19,7 @@ class UIManager:
             dec = self.container.get_decorators(action)['UIAction']
             self.actions[dec['name']] = action
 
-    def dispatch_action(self, name):
+    def dispatch_event(self, name: str, caller=None, event=None):
         action = self.actions.get(name)
         if not action:
             return
