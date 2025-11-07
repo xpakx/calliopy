@@ -13,9 +13,9 @@ def exit_action(frontend):
 @Scene()
 def test_scene(dial, gui_manager, gui):
     dial.narrate("UI actions")
-    gui.show = True
+    gui.show("menu")
     dial.narrate("menu")
-    gui.show = False
+    gui.hide()
     dial.narrate("no menu")
     if gui_manager:
         gui_manager.dispatch_event("exit")
@@ -31,7 +31,9 @@ if __name__ == "__main__":
     factory.disable_all()
     if load_gui:
         from calliopy.gui.ui_manager import UIManager
+        from calliopy.gui.ui_drawable import UIDrawable
         factory.enable_for(UIManager)
+        factory.enable_for(UIDrawable)
     app = CalliopyApp()
     if load_gui:
         app.load_module("calliopy.gui")
@@ -50,6 +52,5 @@ if __name__ == "__main__":
         style.parse(css)
         text = load_file("files/layout.ui")
         root = UIParser(text).body(style, dispatcher)
-
-        ui.root = root
+        ui.register_layout("menu", root)
     app.run()
