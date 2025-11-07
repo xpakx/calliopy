@@ -101,6 +101,7 @@ class CalliopyFrontend:
         self.audio = audio_manager
         self.gui = gui
         self.drawables = []
+        self.should_close = False
 
     @Inject()
     def set_drawables(self, drawables: list[DrawableComponent]) -> None:
@@ -172,7 +173,7 @@ class CalliopyFrontend:
         for drawable in self.drawables:
             drawable.init()
 
-        while not window_should_close():
+        while not window_should_close() and not self.should_close:
             for drawable in self.drawables:
                 if drawable.is_active():
                     drawable.update()
@@ -204,7 +205,7 @@ class CalliopyFrontend:
 
             end_drawing()
 
-        self.dial.cancel()  # TODO: do for all components
+        self.close()
         self.chars.unload_all()
         unload_texture(bg)
         for drawable in self.drawables:
@@ -275,6 +276,10 @@ class CalliopyFrontend:
         if blocking:
             proceed_scene = False
         return proceed_scene
+
+    def close(self) -> None:
+        self.dial.cancel()  # TODO: do for all components
+        self.should_close = True
 
 
 class ChoiceResult:
