@@ -78,6 +78,11 @@ class DrawableComponent(ABC):
     def after_scene_give_control(self) -> None:
         pass
 
+    def z_index(self) -> int:
+        # 0 = background; 100 = portraits, 200 = dialogue
+        # <=300 for user defined
+        return 300
+
 
 @Component(tags="frontend")
 class CalliopyFrontend:
@@ -110,6 +115,7 @@ class CalliopyFrontend:
     @Inject()
     def set_drawables(self, drawables: list[DrawableComponent]) -> None:
         self.drawables = drawables
+        self.drawables.sort(key=lambda s: s.z_index())
 
     def draw_background(self, bg):
         clear_background(RAYWHITE)
@@ -165,7 +171,6 @@ class CalliopyFrontend:
 
         bg = load_texture(self.chars.bg_texture)
 
-        # TODO: probably would be better to make this lazy
         for drawable in self.drawables:
             drawable.init()
 
@@ -397,3 +402,6 @@ class DrawableDialogue(DrawableComponent):
 
     def after_scene_give_control(self) -> None:
         self.text_color = self.get_current_dialogue_color()
+
+    def z_index(self) -> None:
+        return 200
