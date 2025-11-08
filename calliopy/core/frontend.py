@@ -48,6 +48,7 @@ class Timer:
     blocking: bool = False
 
 
+# TODO: z-index? layers?
 class DrawableComponent(ABC):
     @abstractmethod
     def init(self) -> None:
@@ -72,6 +73,9 @@ class DrawableComponent(ABC):
     @abstractmethod
     def is_active(self) -> bool:
         """Return whether drawable should be updated and drawn"""
+        pass
+
+    def after_scene_give_control(self) -> None:
         pass
 
 
@@ -131,11 +135,6 @@ class CalliopyFrontend:
             pos = value.pos
             draw_texture(tex, pos[0], pos[1], WHITE)
 
-    def draw_dialogue(self, text: str, bg_col, txt_col):
-        draw_rectangle(50, 450, 700, 120, bg_col)
-        draw_rectangle_lines(50, 450, 700, 120, WHITE)
-        draw_text(text, 60, 460, self.font_size, txt_col)
-
     def process_timers(
             self, timers: list[Timer], dt: float) -> tuple[bool, bool]:
         blocking = False
@@ -166,9 +165,6 @@ class CalliopyFrontend:
 
         bg = load_texture(self.chars.bg_texture)
 
-        DIAL_COLOR = 0x88000000
-        txt_col = WHITE
-
         # TODO: probably would be better to make this lazy
         for drawable in self.drawables:
             drawable.init()
@@ -185,11 +181,6 @@ class CalliopyFrontend:
             for drawable in self.drawables:
                 if drawable.is_active():
                     drawable.draw()
-            if self.dial.current_text:
-                self.draw_dialogue(self.dial.current_text, DIAL_COLOR, txt_col)
-
-            for i, opt in enumerate(self.dial.options):
-                draw_text(f"{i+1}. {opt}", 60, 500 + i*30, 24, WHITE)
 
             proceed_scene = self.tick(timers, dt)
 
@@ -199,7 +190,8 @@ class CalliopyFrontend:
                 if not has_scene:
                     break
                 self.change_portraits_for_scene()
-                txt_col = self.get_current_dialogue_color()
+                for drawable in self.drawables:
+                    drawable.after_scene_give_control()
                 self.update_sounds()
                 self.update_timers(timers)
 
@@ -233,14 +225,6 @@ class CalliopyFrontend:
             if self.dial.speaker:
                 self.chars.show_temp(self.dial.speaker)
         self.chars.update_moods_from_chars()
-
-    def get_current_dialogue_color(self) -> int:
-        txt_col = WHITE
-        if self.dial.speaker:
-            col = self.chars.get_character_color(self.dial.speaker)
-            if col is not None:
-                txt_col = col
-        return txt_col
 
     def update_sounds(self) -> None:
         to_play = self.audio.get_sound()
@@ -364,3 +348,52 @@ class DialogueManager:
 
     def cancel(self):
         self._abort = True
+
+
+@Component()
+class DrawableDialogue(DrawableComponent):
+    def __init__(self, dial: DialogueManager, chars, front_config) -> None:
+        self.dial = dial
+        self.chars = chars
+        self.dial_color = 0x88000000
+        self.font_size = front_config.font_size
+        self.text_color = WHITE
+
+    def init(self) -> None:
+        pass
+
+    def destroy(self) -> None:
+        pass
+
+    def update(self) -> None:
+        pass
+
+    def draw(self) -> None:
+        if self.dial.current_text:
+            self.draw_dialogue()
+        elif self.dial.options:
+            self.draw_choice()
+
+    def draw_dialogue(self) -> None:
+        text = self.dial.current_text
+        draw_rectangle(50, 450, 700, 120, self.dial_color)
+        draw_rectangle_lines(50, 450, 700, 120, WHITE)
+        draw_text(text, 60, 460, self.font_size, self.text_color)
+
+    def draw_choice(self) -> None:
+        for i, opt in enumerate(self.dial.options):
+            draw_text(f"{i+1}. {opt}", 60, 500 + i*30, 24, WHITE)
+
+    def is_active(self) -> bool:
+        return self.dial.current_text or len(self.dial.options) > 0
+
+    def get_current_dialogue_color(self) -> int:
+        txt_col = WHITE
+        if self.dial.speaker:
+            col = self.chars.get_character_color(self.dial.speaker)
+            if col is not None:
+                txt_col = col
+        return txt_col
+
+    def after_scene_give_control(self) -> None:
+        self.text_color = self.get_current_dialogue_color()
