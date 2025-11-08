@@ -131,6 +131,30 @@ class VBox(Element):
                 child.update()
 
 
+class HBox(Element):
+    def __init__(self, style, children=None):
+        super().__init__("hbox", style, children)
+
+    def compute_layout(self, x, y, available_w, available_h):
+        spacing = int(self.style.resolve(self).get("spacing", "6"))
+        current_x = x
+        for child in self.children:
+            child.compute_layout(current_x, y, available_w, available_h)
+            current_x += child.rect.width + spacing
+        self.rect = Rectangle(x, y, current_x - x, available_h)
+        self.update_style()
+
+    def draw(self):
+        super().draw()
+        for child in self.children:
+            child.draw()
+
+    def update(self):
+        for child in self.children:
+            if hasattr(child, "update"):
+                child.update()
+
+
 # -------- ELEMS -------- #
 class Button(Element):
     def __init__(
@@ -216,6 +240,8 @@ def _create_element(
 ):
     if tag == "vbox":
         return VBox(style)
+    elif tag == "hbox":
+        return HBox(style)
     elif tag == "button":
         return Button("", style, classes, dispatcher, action)
     elif tag == "image":
