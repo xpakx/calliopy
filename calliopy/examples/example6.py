@@ -3,6 +3,7 @@ from calliopy.core.app import CalliopyApp
 from calliopy.gui.annotations import UIAction
 from calliopy.logger.logger import LoggerFactory
 from calliopy.gui.ui_drawable import UIComponent
+from dataclasses import dataclass
 
 
 @UIAction(name="exit")
@@ -12,17 +13,15 @@ def exit_action(frontend):
 
 
 @Component()
+@dataclass
 class Menu(UIComponent):
-    def __init__(self) -> None:
-        self.name = "menu"
-        self.x = 300
-        self.y = 150
-        self.width = 200
-        self.height = 400
-        self.root = None
-        self.initialized = False
-        self.layout_file = "files/layout.ui"
-        self.style_file = "files/style.css"
+    name = "menu"
+    x = 300
+    y = 150
+    width = 200
+    height = 400
+    layout_file = "files/layout.ui"
+    style_file = "files/style.css"
 
 
 @Scene()

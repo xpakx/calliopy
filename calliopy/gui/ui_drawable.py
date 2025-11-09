@@ -3,26 +3,90 @@ from calliopy.core.annotations import Component, Inject
 from calliopy.core.frontend import DrawableComponent
 from calliopy.gui.ui import Element, Style
 from calliopy.gui.parser.layout import UIParser
+from dataclasses import is_dataclass, fields
 
 
 # TODO: make this usable like Character class
 class UIComponent:
     def __init__(self, front_config) -> None:
-        self.name = "component"
-        self.x: int = 0
-        self.y: int = 0
         self.width: int = front_config.width
         self.height: int = front_config.height
         self.root: Element | None = None
         self.initialized = False
-        self.layout_file: str = ""
-        self.style_file: str = ""
+
+    # for dataclasses
+    def __post_init__(self) -> None:
+        self.root: Element | None = None
+        self.initialized = False
+
+        instance_fields = self.__dict__
+        cls_fields = set() if isinstance(self, type) else self.__class__.__dict__
+        cls_fields = {
+            name: val for name, val in cls_fields.items()
+            if not name.startswith("_")
+        }
+        datacls_fields = set() if not is_dataclass(self) else fields(self)
+        datacls_fields = {
+            f.name: f.default for f in datacls_fields
+            if not f.name.startswith("_")
+        }
+
+        all_fields = cls_fields
+        all_fields.update(datacls_fields)
+        all_fields.update(instance_fields)
+
+        if "name" not in all_fields:
+            raise Exception("Name for layout not defined")
+        if "layout_file" not in all_fields:
+            raise Exception("Layout file not defined")
+        if "style_file" not in all_fields:
+            raise Exception("Style file not defined")
 
     def compute_layout(self) -> None:
         if not self.root:
             return
         self.root.compute_layout(self.x, self.y, self.width, self.height)
         self.initialized = True
+
+    @property
+    def x(self) -> str | None:
+        if "_x" in self.__dict__:
+            return self.__dict__["_x"]
+        return 0
+
+    @x.setter
+    def x(self, value: str) -> None:
+        self.__dict__["_x"] = value
+
+    @property
+    def y(self) -> str | None:
+        if "_y" in self.__dict__:
+            return self.__dict__["_y"]
+        return 0
+
+    @y.setter
+    def y(self, value: str) -> None:
+        self.__dict__["_y"] = value
+
+    @property
+    def width(self) -> str | None:
+        if "_width" in self.__dict__:
+            return self.__dict__["_width"]
+        return 0
+
+    @width.setter
+    def width(self, value: str) -> None:
+        self.__dict__["_width"] = value
+
+    @property
+    def height(self) -> str | None:
+        if "_height" in self.__dict__:
+            return self.__dict__["_height"]
+        return 0
+
+    @height.setter
+    def height(self, value: str) -> None:
+        self.__dict__["_height"] = value
 
 
 @Component(tags=["ui", "gui"])
