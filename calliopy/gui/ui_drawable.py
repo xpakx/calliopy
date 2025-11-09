@@ -1,7 +1,7 @@
 from calliopy.logger.logger import LoggerFactory
 from calliopy.core.annotations import Component, Inject
 from calliopy.core.frontend import DrawableComponent
-from calliopy.gui.ui import Element, Style
+from calliopy.gui.ui import Element, Style, Image
 from calliopy.gui.parser.layout import UIParser
 from dataclasses import is_dataclass, fields
 
@@ -88,6 +88,16 @@ class UIComponent:
     def height(self, value: str) -> None:
         self.__dict__["_height"] = value
 
+    def destroy(self):
+        if self.root:
+            self.unload_images(self.root)
+
+    def unload_images(self, elem: Element):
+        if isinstance(elem, Image):
+            elem.unload()
+        for child in getattr(elem, "children", []):
+            self.unload_images(child)
+
 
 @Component(tags=["ui", "gui"])
 class UIDrawable(DrawableComponent):
@@ -118,8 +128,9 @@ class UIDrawable(DrawableComponent):
         return self.component is not None and self._show
 
     def destroy(self) -> None:
-        # TODO: unload all images
-        pass
+        self.logger.debug("Unloading images from layouts")
+        for layout in self.layouts.values():
+            layout.destroy()
 
     def show(self, view: str | None) -> None:
         if view is None:
