@@ -4,6 +4,13 @@ from calliopy.logger.logger import LoggerFactory
 from calliopy.core.raylib import load_texture, unload_texture, Texture2D
 from pathlib import Path
 from dataclasses import dataclass
+from enum import Enum
+
+
+class ImagePosition(Enum):
+    CENTER = 0
+    LEFT = 1
+    RIGT = 2
 
 
 class Character:
@@ -85,6 +92,9 @@ class CharacterManager:
         self.characters = {}
         for char in characters:
             self.characters[char._name] = char
+        self.right = (500, 200)
+        self.center = (250, 200)
+        self.left = (0, 200)
         self.set_textures()
         self.visible = {}
         self.auto_speaker_portraits = True
@@ -101,7 +111,7 @@ class CharacterManager:
                 continue
             self.textures[char] = {
                     "image": p,
-                    "pos": (500, 200),
+                    "pos": self.right
             }
 
         files_dir = Path("files")
@@ -113,21 +123,43 @@ class CharacterManager:
             if name not in self.textures:
                 self.textures[name.capitalize()] = {
                     "image": str(p),
-                    "pos": (500, 200),
+                    "pos": self.right,
                 }
 
     def show(
             self,
             image: str,
             mood: str | None = None,
-            pos: tuple[int, int] | None = None
+            pos: tuple[int, int] | ImagePosition | str | None = None
     ) -> None:
+        if type(pos) is str:
+            pos = self.str_to_pos(pos)
+        if type(pos) is ImagePosition:
+            pos = self.enum_to_pos(pos)
         img = ImageDef(
             name=image,
             mood=mood,
-            pos=pos or (500, 200),
+            pos=pos or self.right,
         )
         self._show(img)
+
+    def enum_to_pos(self, pos: ImagePosition) -> tuple[int, int]:
+        if pos == ImagePosition.LEFT:
+            return self.left
+        elif pos == ImagePosition.RIGT:
+            return self.right
+        elif pos == ImagePosition.CENTER:
+            return self.center
+        return self.right
+
+    def str_to_pos(self, pos: str) -> tuple[int, int]:
+        if pos == "left":
+            return self.left
+        elif pos == "right":
+            return self.right
+        elif pos == "center":
+            return self.center
+        return self.right
 
     def hide(self, image: str) -> None:
         image = image.capitalize()
@@ -148,12 +180,16 @@ class CharacterManager:
             self,
             image: str,
             mood: str | None = None,
-            pos: tuple[int, int] | None = None
+            pos: tuple[int, int] | ImagePosition | str | None = None
     ) -> None:
+        if type(pos) is str:
+            pos = self.str_to_pos(pos)
+        if type(pos) is ImagePosition:
+            pos = self.enum_to_pos(pos)
         img = ImageDef(
             name=image,
             mood=mood,
-            pos=pos or (500, 200),
+            pos=pos or self.right,
             temporary=True
         )
         self._show(img)
