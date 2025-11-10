@@ -35,6 +35,7 @@ class Character:
     def set_dialogue(self, dial: DialogueManager) -> None:
         self.dial = dial
         self._mood = None
+        self._img_pos = None
 
     def say(self, text: str) -> None:
         self.dial.say(self._name, text)
@@ -64,8 +65,12 @@ class Character:
     def __repr__(self):
         return f"<Character name={self._name!r}>"
 
-    def emote(self, mood: str):
+    def emote(
+            self, mood: str,
+            pos: ImagePosition | tuple[int, int] | str | None = None
+    ):
         self._mood = mood
+        self._img_pos = pos
 
 
 @dataclass
@@ -262,14 +267,34 @@ class CharacterManager:
 
     def update_moods_from_chars(self) -> None:
         for image in self.visible.values():
-            if image.temporary and image.mood:
-                continue
-            char = self.characters.get(image.name)
-            if not char or not char._mood or char._mood == image.mood:
-                continue
+            self.update_mood_from_char(image)
+            self.update_pos_from_char(image)
 
-            mood = f"{image.name}_{char._mood}"
-            mood_tex_info = self.textures.get(mood.capitalize())
-            if not mood_tex_info:
-                continue
-            image.resolved_texture_name = mood.capitalize()
+    def update_mood_from_char(self, image: ImageDef) -> None:
+        if image.temporary and image.mood:
+            return
+        char = self.characters.get(image.name)
+        if not char or not char._mood or char._mood == image.mood:
+            return
+
+        mood = f"{image.name}_{char._mood}"
+        mood_tex_info = self.textures.get(mood.capitalize())
+        if not mood_tex_info:
+            return
+        image.resolved_texture_name = mood.capitalize()
+
+    def update_pos_from_char(self, image: ImageDef) -> None:
+        # TODO: decide about order
+        # if image.temporary:
+        #    return
+        char = self.characters.get(image.name)
+        if not char or not char._img_pos:
+            return
+
+        pos = char._img_pos
+        if type(pos) is str:
+            pos = self.str_to_pos(pos)
+        if type(pos) is ImagePosition:
+            pos = self.enum_to_pos(pos)
+
+        image.pos = pos
