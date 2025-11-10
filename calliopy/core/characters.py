@@ -187,6 +187,10 @@ class CharacterManager:
             mood: str | None = None,
             pos: tuple[int, int] | ImagePosition | str | None = None
     ) -> None:
+        if pos is None:
+            char = self.characters.get(image.capitalize())
+            if char:
+                pos = char._img_pos
         if type(pos) is str:
             pos = self.str_to_pos(pos)
         if type(pos) is ImagePosition:
@@ -215,6 +219,10 @@ class CharacterManager:
                     char = self.characters.get(image.name.capitalize())
                     if char:
                         char._mood = image.mood
+        if not image.temporary:
+            char = self.characters.get(image.name.capitalize())
+            if char:
+                char._img_pos = image.pos
 
         if not image.mood:
             tex_info = self.textures.get(image.name.capitalize())
@@ -284,9 +292,8 @@ class CharacterManager:
         image.resolved_texture_name = mood.capitalize()
 
     def update_pos_from_char(self, image: ImageDef) -> None:
-        # TODO: decide about order
-        # if image.temporary:
-        #    return
+        if image.temporary:
+            return
         char = self.characters.get(image.name)
         if not char or not char._img_pos:
             return
