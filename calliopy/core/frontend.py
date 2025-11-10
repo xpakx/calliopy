@@ -145,6 +145,7 @@ class CalliopyFrontend:
     def process_timers(
             self, timers: list[Timer], dt: float) -> tuple[bool, bool]:
         blocking = False
+        pause_end = False
         i = 0
         while i < len(timers):
             timer = timers[i]
@@ -153,7 +154,7 @@ class CalliopyFrontend:
                 timers[i] = timers[-1]
                 timers.pop()
                 if timer.name == "pause":
-                    return True, blocking
+                    pause_end = True
                 if timer.after:
                     timer.after(timer.name)
             else:
@@ -162,7 +163,7 @@ class CalliopyFrontend:
                 i += 1
                 if timer.ontick:
                     timer.ontick(timer.name, dt)
-        return False, blocking
+        return pause_end, blocking
 
     def run(self):
         trace_callback = TRACELOGCALLBACK(get_raylib_logger())
