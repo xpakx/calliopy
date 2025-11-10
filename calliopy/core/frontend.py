@@ -15,6 +15,7 @@ from calliopy.core.audio import AudioManager
 from greenlet import greenlet
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
+from typing import Callable
 
 log_level = {
         1: "TRACE", 2: "DEBUG", 3: "INFO",
@@ -40,15 +41,15 @@ class FrontendConfig:
     title: str = "Calliopy Visual Novel"
 
 
-# TODO: callbacks?
 @dataclass
 class Timer:
     name: str
     timer: float
     blocking: bool = False
+    after: Callable[[str], None] | None = None
+    ontick: Callable[[str, float], None] | None = None
 
 
-# TODO: z-index? layers?
 class DrawableComponent(ABC):
     @abstractmethod
     def init(self) -> None:
@@ -153,10 +154,14 @@ class CalliopyFrontend:
                 timers.pop()
                 if timer.name == "pause":
                     return True, blocking
+                if timer.after:
+                    timer.after(timer.name)
             else:
                 if timer.blocking:
                     blocking = True
                 i += 1
+                if timer.ontick:
+                    timer.ontick(timer.name, dt)
         return False, blocking
 
     def run(self):
