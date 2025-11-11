@@ -135,15 +135,6 @@ class CalliopyFrontend:
             WHITE
         )
 
-    def draw_speaker(self):
-        for key, value in self.chars.visible.items():
-            c = self.chars.get_texture(key.capitalize())
-            if c is None:
-                continue
-            tex = c['texture']
-            pos = value.pos
-            draw_texture(tex, pos[0], pos[1], WHITE)
-
     def process_timers(
             self, dt: float) -> tuple[bool, bool]:
         timers = self.timers
@@ -189,7 +180,6 @@ class CalliopyFrontend:
                     drawable.update()
             begin_drawing()
             self.draw_background(bg)
-            self.draw_speaker()
             dt = get_frame_time()
 
             for drawable in self.drawables:
@@ -203,7 +193,6 @@ class CalliopyFrontend:
                 has_scene = self.resume_scene()
                 if not has_scene:
                     break
-                self.change_portraits_for_scene()
                 for drawable in self.drawables:
                     drawable.after_scene_give_control()
                 self.update_sounds()
@@ -212,7 +201,6 @@ class CalliopyFrontend:
             end_drawing()
 
         self.close()
-        self.chars.unload_all()
         unload_texture(bg)
         for drawable in self.drawables:
             drawable.destroy()
@@ -232,13 +220,6 @@ class CalliopyFrontend:
             self.chars.reset()
             self.scheduler.run_scene(new_scene, **kwargs)
         return True
-
-    def change_portraits_for_scene(self) -> None:
-        self.chars.reset_temp()
-        if self.chars.auto_speaker_portraits:
-            if self.dial.speaker:
-                self.chars.show_temp(self.dial.speaker)
-        self.chars.update_moods_from_chars()
 
     def update_sounds(self) -> None:
         to_play = self.audio.get_sound()
@@ -417,3 +398,47 @@ class DrawableDialogue(DrawableComponent):
 
     def z_index(self) -> None:
         return 200
+
+
+@Component()
+class DrawableImages(DrawableComponent):
+    def __init__(self, dial: DialogueManager, chars, front_config) -> None:
+        self.chars = chars
+        self.dial = dial
+        self.dial_color = 0x88000000
+        self.font_size = front_config.font_size
+        self.text_color = WHITE
+
+    def init(self) -> None:
+        pass
+
+    def destroy(self) -> None:
+        self.chars.unload_all()
+
+    def update(self) -> None:
+        pass
+
+    def draw(self) -> None:
+        for key, value in self.chars.visible.items():
+            c = self.chars.get_texture(key.capitalize())
+            if c is None:
+                continue
+            tex = c['texture']
+            pos = value.pos
+            draw_texture(tex, pos[0], pos[1], WHITE)
+
+    def is_active(self) -> bool:
+        return True
+
+    def after_scene_give_control(self) -> None:
+        self.change_portraits_for_scene()
+
+    def z_index(self) -> None:
+        return 100
+
+    def change_portraits_for_scene(self) -> None:
+        self.chars.reset_temp()
+        if self.chars.auto_speaker_portraits:
+            if self.dial.speaker:
+                self.chars.show_temp(self.dial.speaker)
+        self.chars.update_moods_from_chars()
