@@ -63,7 +63,7 @@ class DrawableComponent(ABC):
         pass
 
     @abstractmethod
-    def update(self) -> None:
+    def update(self, dt: float) -> None:
         """Updates drawable component before drawing"""
         pass
 
@@ -78,6 +78,9 @@ class DrawableComponent(ABC):
         pass
 
     def after_scene_give_control(self) -> None:
+        pass
+
+    def on_new_scene(self) -> None:
         pass
 
     def z_index(self) -> int:
@@ -175,12 +178,12 @@ class CalliopyFrontend:
             drawable.init()
 
         while not window_should_close() and not self.should_close:
+            dt = get_frame_time()
             for drawable in self.drawables:
                 if drawable.is_active():
-                    drawable.update()
+                    drawable.update(dt)
             begin_drawing()
             self.draw_background(bg)
-            dt = get_frame_time()
 
             for drawable in self.drawables:
                 if drawable.is_active():
@@ -217,7 +220,8 @@ class CalliopyFrontend:
             new_scene, kwargs = self.script.get_next_scene(tag)
             if new_scene is None:
                 return False
-            self.chars.reset()
+            for drawable in self.drawables:
+                drawable.on_new_scene()
             self.scheduler.run_scene(new_scene, **kwargs)
         return True
 
@@ -363,7 +367,7 @@ class DrawableDialogue(DrawableComponent):
     def destroy(self) -> None:
         pass
 
-    def update(self) -> None:
+    def update(self, dt: float) -> None:
         pass
 
     def draw(self) -> None:
@@ -415,7 +419,7 @@ class DrawableImages(DrawableComponent):
     def destroy(self) -> None:
         self.chars.unload_all()
 
-    def update(self) -> None:
+    def update(self, dt: float) -> None:
         pass
 
     def draw(self) -> None:
@@ -442,3 +446,6 @@ class DrawableImages(DrawableComponent):
             if self.dial.speaker:
                 self.chars.show_temp(self.dial.speaker)
         self.chars.update_moods_from_chars()
+
+    def on_new_scene(self) -> None:
+        self.chars.reset()

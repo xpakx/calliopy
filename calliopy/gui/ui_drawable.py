@@ -120,7 +120,7 @@ class UIDrawable(DrawableComponent):
     def init(self) -> None:
         pass
 
-    def update(self) -> None:
+    def update(self, dt: float) -> None:
         if self.component:
             self.component.root.update()
 
