@@ -409,9 +409,7 @@ class DrawableImages(DrawableComponent):
     def __init__(self, dial: DialogueManager, chars, front_config) -> None:
         self.chars = chars
         self.dial = dial
-        self.dial_color = 0x88000000
-        self.font_size = front_config.font_size
-        self.text_color = WHITE
+        self.time_passed = 0
 
     def init(self) -> None:
         pass
@@ -420,7 +418,7 @@ class DrawableImages(DrawableComponent):
         self.chars.unload_all()
 
     def update(self, dt: float) -> None:
-        pass
+        self.time_passed += dt
 
     def draw(self) -> None:
         for key, value in self.chars.visible.items():
@@ -449,3 +447,4 @@ class DrawableImages(DrawableComponent):
 
     def on_new_scene(self) -> None:
         self.chars.reset()
+        self.time_passed = 0
