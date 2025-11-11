@@ -46,6 +46,7 @@ class Timer:
     name: str
     timer: float
     blocking: bool = False
+    permanent: bool = False
     after: Callable[[str], None] | None = None
     ontick: Callable[[str, float], None] | None = None
 
@@ -151,8 +152,9 @@ class CalliopyFrontend:
         i = 0
         while i < len(timers):
             timer = timers[i]
-            timer.timer -= dt
-            if timer.timer <= 0:
+            if not timer.permanent:
+                timer.timer -= dt
+            if timer.timer <= 0 and not timer.permanent:
                 timers[i] = timers[-1]
                 timers.pop()
                 if timer.name == "pause":
