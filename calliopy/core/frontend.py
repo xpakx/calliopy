@@ -352,7 +352,7 @@ class DialogueManager:
         self._abort = True
 
 
-@Component()
+@Component(if_true="not custom_dialogue")
 class DrawableDialogue(DrawableComponent):
     def __init__(self, dial: DialogueManager, chars, front_config) -> None:
         self.dial = dial
@@ -404,7 +404,7 @@ class DrawableDialogue(DrawableComponent):
         return 200
 
 
-@Component()
+@Component(if_true="not custom_images")
 class DrawableImages(DrawableComponent):
     def __init__(self, dial: DialogueManager, chars, front_config) -> None:
         self.chars = chars

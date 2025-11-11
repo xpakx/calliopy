@@ -35,12 +35,17 @@ class CalliopyContainer:
         self.names = set()
         self.components_by_tag = {}
         self.logger = LoggerFactory.get_logger()
+        self.flags = {}  # TODO: load flags
 
     def register(self, component):
         comp_orig_name = get_type_name(component)
         if comp_orig_name in self.names:
             return
         comp_dec = self.get_decorators(component).get('Component', {})
+
+        if not self.evaluate_conditional_creation(comp_dec):
+            return
+
         constructable = comp_dec.get('constructable', True)
         self.logger.debug(component.__name__)
 
@@ -294,6 +299,16 @@ class CalliopyContainer:
             lambda comp: decorator in self.get_decorators(comp.component_class),
             constructable=False
         )
+
+    # TODO: improve and add very simple DSL
+    def evaluate_conditional_creation(self, comp_dec: dict):
+        var = comp_dec.get('if_true')
+        if var is None:
+            return True
+        if var.startswith('not '):
+            var = var.split()[1]
+            return var not in self.flags
+        return var in self.flags
 
 
 def get_type_name(cls: type) -> str:

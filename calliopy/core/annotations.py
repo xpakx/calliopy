@@ -7,11 +7,17 @@ def _ensure_meta_lists(cls) -> None:
         cls.__calliopy_decorators__ = {}
 
 
-def _decorate_component(cls, tag: str | list[str] | None, constructable: bool):
+def _decorate_component(
+        cls,
+        tag: str | list[str] | None,
+        constructable: bool,
+        if_true: str | None = None
+):
     tags = [tag] if isinstance(tag, str) else tag or []
     cls.__calliopy_decorators__["Component"] = {
             "tags": tags,
             "constructable": constructable,
+            "if_true": if_true,
     }
 
 
@@ -39,10 +45,17 @@ def _decorate_scene(
     }
 
 
-def Component(tags: str | list[str] | None = None, constructable: bool = True):
+def Component(
+        tags: str | list[str] | None = None,
+        constructable: bool = True,
+        if_true: str | None = None,
+):
     def wrapper(cls):
         _ensure_meta_lists(cls)
-        _decorate_component(cls, tags, constructable)
+        _decorate_component(
+                cls, tags, constructable,
+                if_true
+        )
         return cls
     return wrapper
 
