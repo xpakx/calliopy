@@ -112,6 +112,7 @@ class CalliopyFrontend:
         self.gui = gui
         self.drawables = []
         self.should_close = False
+        self.timers: list[Timer] = []
 
     @Inject()
     def set_drawables(self, drawables: list[DrawableComponent]) -> None:
@@ -143,7 +144,8 @@ class CalliopyFrontend:
             draw_texture(tex, pos[0], pos[1], WHITE)
 
     def process_timers(
-            self, timers: list[Timer], dt: float) -> tuple[bool, bool]:
+            self, dt: float) -> tuple[bool, bool]:
+        timers = self.timers
         blocking = False
         pause_end = False
         i = 0
@@ -170,7 +172,6 @@ class CalliopyFrontend:
         set_trace_log_callback(trace_callback)
         init_window(self.screen_width, self.screen_height, self.window_title)
         set_target_fps(60)
-        timers: list[Timer] = []
 
         self.audio.init_device()
         self.audio.preload("dialogue", "files/dialogue.mp3")
@@ -193,10 +194,10 @@ class CalliopyFrontend:
                 if drawable.is_active():
                     drawable.draw()
 
-            proceed_scene = self.tick(timers, dt)
+            proceed_scene = self.tick(dt)
 
             if proceed_scene:
-                timers = []
+                self.timers = []
                 has_scene = self.resume_scene()
                 if not has_scene:
                     break
@@ -204,7 +205,7 @@ class CalliopyFrontend:
                 for drawable in self.drawables:
                     drawable.after_scene_give_control()
                 self.update_sounds()
-                self.update_timers(timers)
+                self.update_timers()
 
             end_drawing()
 
@@ -242,9 +243,9 @@ class CalliopyFrontend:
         if to_play:
             play_sound(to_play)
 
-    def update_timers(self, timers: list[Timer]) -> None:
+    def update_timers(self) -> None:
         if self.dial.pause_for > 0:
-            timers.append(
+            self.timers.append(
                     Timer(
                         timer=self.dial.pause_for,
                         name="pause",
@@ -252,7 +253,10 @@ class CalliopyFrontend:
                     )
             )
 
-    def tick(self, timers: list[Timer], dt: float) -> bool:
+    def register_timer(self, timer: Timer) -> None:
+        self.timers.append(timer)
+
+    def tick(self, dt: float) -> bool:
         proceed_scene = False
         if self.dial.current_text and is_key_pressed(KEY_ENTER):
             proceed_scene = True
@@ -265,7 +269,7 @@ class CalliopyFrontend:
         if self.dial.paused and is_key_pressed(KEY_ENTER):
             proceed_scene = True
 
-        pause_ended, blocking = self.process_timers(timers, dt)
+        pause_ended, blocking = self.process_timers(dt)
         if not proceed_scene:
             proceed_scene = pause_ended
         if blocking:
