@@ -40,6 +40,36 @@ class Animation:
                 (self.end_value - self.start_value) * t
 
 
+class Ease:
+    @staticmethod
+    def linear(t: float) -> float:
+        return t
+
+    @staticmethod
+    def ease_in_quad(t: float) -> float:
+        return t * t
+
+    @staticmethod
+    def ease_out_quad(t: float) -> float:
+        return t * (2 - t)
+
+    @staticmethod
+    def ease_in_out_quad(t: float) -> float:
+        return 2 * t * t if t < 0.5 else -1 + (4 - 2 * t) * t
+
+    @staticmethod
+    def ease_in_cubic(t: float) -> float:
+        return t ** 3
+
+    @staticmethod
+    def ease_out_cubic(t: float) -> float:
+        return (t - 1) ** 3 + 1
+
+    @staticmethod
+    def ease_in_out_cubic(t: float) -> float:
+        return 4 * t ** 3 if t < 0.5 else (t - 1) * (2 * t - 2) ** 2 + 1
+
+
 if __name__ == "__main__":
     import time
 
@@ -79,6 +109,7 @@ if __name__ == "__main__":
         start_value=0.0,
         end_value=1.0,
         on_update=update,
+        ease_func=Ease.ease_in_quad
     )
 
     while not anim.tick(1 / 60):
