@@ -427,7 +427,7 @@ class DrawableImages(DrawableComponent):
                 continue
             tex = c['texture']
             pos = value.pos
-            draw_texture(tex, pos[0], pos[1], WHITE)
+            draw_texture(tex, pos[0], pos[1], value.color)
 
     def is_active(self) -> bool:
         return True

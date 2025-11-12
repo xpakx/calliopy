@@ -1,7 +1,10 @@
 from calliopy.core.annotations import Component, Inject
 from calliopy.core.frontend import DialogueManager
 from calliopy.logger.logger import LoggerFactory
-from calliopy.core.raylib import load_texture, unload_texture, Texture2D
+from calliopy.core.raylib import (
+        load_texture, unload_texture, Texture2D,
+        WHITE
+)
 from pathlib import Path
 from dataclasses import dataclass
 from enum import Enum
@@ -82,6 +85,7 @@ class ImageDef:
     opacity: float = 1.0
     hide: bool = False
     temporary: bool = False
+    color: int = WHITE
     resolved_texture_name: str | None = None
 
 
