@@ -25,10 +25,10 @@ class Animation:
         self.elapsed += dt
         t = min(self.elapsed / self.duration, 1.0)
         t = self.ease_func(t)
+        value = self.get_value(t)
         if self.on_update:
-            self.on_update(t)
+            self.on_update(value)
         if self.field:
-            value = self.get_value(t)
             setattr(self.field.obj, self.field.field_name, value)
         if self.elapsed >= self.duration:
             if self.on_end:
@@ -78,14 +78,31 @@ class AnimationLib:
         value.color = (new_a << 24) | (0x00FFFFFF & value.color)
 
     @classmethod
-    def fadein(cls, image, total_time: int = 0.2):
+    def fadein(
+            cls, image, total_time: int = 0.2,
+            ease: Callable[[float], float] = Ease.linear
+    ):
         return Animation(
             name=f"fadein_{image.name}",
             duration=total_time,
             start_value=0.0,
             end_value=1.0,
             on_update=lambda t: cls.fade_in_color(image, t),
-            ease_func=Ease.linear
+            ease_func=ease
+        )
+
+    @classmethod
+    def fadeout(
+            cls, image, total_time: int = 0.2,
+            ease: Callable[[float], float] = Ease.linear
+    ):
+        return Animation(
+            name=f"fadeout_{image.name}",
+            duration=total_time,
+            start_value=1.0,
+            end_value=0.0,
+            on_update=lambda t: cls.fade_in_color(image, t),
+            ease_func=ease
         )
 
 
@@ -129,7 +146,7 @@ if __name__ == "__main__":
         end_value=100.0,
         field=FieldForAnimation(dummy, "x"),
         on_update=lambda t: print(
-            "\r" + f"Progress: {t:.2f} | x = {dummy.x:.2f}",
+            "\r" + f"Progress: {t/100.0:.2f} | x = {dummy.x:.2f}",
             end="",
             flush=True
         ),
