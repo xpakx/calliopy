@@ -12,6 +12,7 @@ from calliopy.core.annotations import Component, Inject
 from calliopy.core.script import ScriptManager
 from calliopy.logger.logger import LoggerFactory
 from calliopy.core.audio import AudioManager
+from calliopy.core.animation import AnimationLib
 from greenlet import greenlet
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
@@ -406,10 +407,17 @@ class DrawableDialogue(DrawableComponent):
 
 @Component(if_true="not custom_images")
 class DrawableImages(DrawableComponent):
-    def __init__(self, dial: DialogueManager, chars, front_config) -> None:
+    def __init__(
+            self,
+            dial: DialogueManager,
+            chars,
+            front_config,
+            anim_manager
+    ) -> None:
         self.chars = chars
         self.dial = dial
         self.time_passed = 0
+        self.anim = anim_manager
 
     def init(self) -> None:
         pass
@@ -419,6 +427,7 @@ class DrawableImages(DrawableComponent):
 
     def update(self, dt: float) -> None:
         self.time_passed += dt
+        self.anim.tick(dt)
 
     def draw(self) -> None:
         for key, value in self.chars.visible.items():
@@ -444,6 +453,11 @@ class DrawableImages(DrawableComponent):
             if self.dial.speaker:
                 self.chars.show_temp(self.dial.speaker)
         self.chars.update_moods_from_chars()
+
+        # TODO: should only be done on demand
+        for key, value in self.chars.visible.items():
+            fade_anim = AnimationLib.fadein(value)
+            self.anim.animate(fade_anim)
 
     def on_new_scene(self) -> None:
         self.chars.reset()

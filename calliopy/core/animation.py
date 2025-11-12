@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Callable, Any
+from calliopy.core.annotations import Component
 
 
 @dataclass
@@ -68,6 +69,48 @@ class Ease:
     @staticmethod
     def ease_in_out_cubic(t: float) -> float:
         return 4 * t ** 3 if t < 0.5 else (t - 1) * (2 * t - 2) ** 2 + 1
+
+
+class AnimationLib:
+    @staticmethod
+    def fade_in_color(value, t: float):
+        new_a = int(0xFF * t)
+        value.color = (new_a << 24) | (0x00FFFFFF & value.color)
+
+    @classmethod
+    def fadein(cls, image, total_time: int = 0.2):
+        return Animation(
+            name=f"fadein_{image.name}",
+            duration=total_time,
+            start_value=0.0,
+            end_value=1.0,
+            on_update=lambda t: cls.fade_in_color(image, t),
+            ease_func=Ease.linear
+        )
+
+
+@Component(tags=["anim", "anim_manager"])
+class AnimationManager:
+    def __init__(self):
+        self.animations: list[Animation] = []
+
+    def animate(self, animation: Animation):
+        self.animations.append(animation)
+
+    def tick(self, dt: float):
+        i = 0
+        while i < len(self.animations):
+            anim = self.animations[i]
+            if anim.tick(dt):
+                self.animations[i] = self.animations[-1]
+                self.animations.pop()
+            else:
+                i += 1
+
+    def clear(self):
+        for anim in self.animations:
+            anim.tick(anim.duration)
+        self.animations.clear()
 
 
 if __name__ == "__main__":
