@@ -65,7 +65,7 @@ def start(dial, alice: Alice, bob: Bob, celeste: Celeste, diana, audio):
 def charlist(dial, chars):
     print(chars.characters)
     ls = [k for k in chars.characters.keys() if k is not None]
-    chars.show("alice")
+    chars.show("alice", animation="fadein")
     dial.narrate("Characters list:\n" +
                  ", ".join(ls))
 

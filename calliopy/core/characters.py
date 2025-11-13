@@ -5,6 +5,7 @@ from calliopy.core.raylib import (
         load_texture, unload_texture, Texture2D,
         WHITE
 )
+from calliopy.core.animation import Animation
 from pathlib import Path
 from dataclasses import dataclass
 from enum import Enum
@@ -87,6 +88,7 @@ class ImageDef:
     temporary: bool = False
     color: int = WHITE
     resolved_texture_name: str | None = None
+    animation: Animation | None = None
 
 
 @Component(tags=["char_manager", "chars"])
@@ -138,8 +140,10 @@ class CharacterManager:
     def show(
             self,
             image: str,
+            *,
             mood: str | None = None,
-            pos: tuple[int, int] | ImagePosition | str | None = None
+            pos: tuple[int, int] | ImagePosition | str | None = None,
+            animation: str | Animation | None = None
     ) -> None:
         if type(pos) is str:
             pos = self.str_to_pos(pos)
@@ -149,6 +153,7 @@ class CharacterManager:
             name=image,
             mood=mood,
             pos=pos or self.right,
+            animation=animation,
         )
         self._show(img)
 
@@ -188,8 +193,10 @@ class CharacterManager:
     def show_temp(
             self,
             image: str,
+            *,
             mood: str | None = None,
-            pos: tuple[int, int] | ImagePosition | str | None = None
+            pos: tuple[int, int] | ImagePosition | str | None = None,
+            animation: str | Animation | None = None
     ) -> None:
         if pos is None:
             char = self.characters.get(image.capitalize())
@@ -203,7 +210,8 @@ class CharacterManager:
             name=image,
             mood=mood,
             pos=pos or self.right,
-            temporary=True
+            temporary=True,
+            animation=animation,
         )
         self._show(img)
 

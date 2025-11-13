@@ -12,7 +12,7 @@ from calliopy.core.annotations import Component, Inject
 from calliopy.core.script import ScriptManager
 from calliopy.logger.logger import LoggerFactory
 from calliopy.core.audio import AudioManager
-from calliopy.core.animation import AnimationLib
+from calliopy.core.animation import AnimationLib, Animation
 from greenlet import greenlet
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
@@ -454,10 +454,17 @@ class DrawableImages(DrawableComponent):
                 self.chars.show_temp(self.dial.speaker)
         self.chars.update_moods_from_chars()
 
-        # TODO: should only be done on demand
         for key, value in self.chars.visible.items():
-            fade_anim = AnimationLib.fadein(value)
-            self.anim.animate(fade_anim)
+            if value.animation:
+                if type(value.animation) is Animation:
+                    self.anim.animate(value.animation)
+                elif type(value.animation) is str:
+                    if value.animation == "fadein":
+                        fadein = AnimationLib.fadein(value)
+                        self.anim.animate(fadein)
+                    elif value.animation == "fadeout":
+                        fadeout = AnimationLib.fadeout(value)
+                        self.anim.animate(fadeout)
 
     def on_new_scene(self) -> None:
         self.chars.reset()
