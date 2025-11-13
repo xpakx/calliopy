@@ -53,6 +53,7 @@ def start(dial, alice: Alice, bob: Bob, celeste: Celeste, diana, audio):
     alice.emote("surprised")
     alice.say("Huh?")
     alice.emote(None)
+    alice.hide()
     celeste.say("'tis but a test.")
     diana.say("A test?")
     dial.pause()

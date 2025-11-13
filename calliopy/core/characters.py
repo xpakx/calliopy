@@ -41,6 +41,13 @@ class Character:
         self._mood = None
         self._img_pos = None
 
+    # TODO: this should be auto managed by DI container,
+    # but for now we inject from the manager itself,
+    # bc we need to implement defering calling setters
+    # until the whole chains of components is created
+    def set_char_manager(self, char_manager: "CharacterManager") -> None:
+        self.chars = char_manager
+
     def say(self, text: str) -> None:
         self.dial.say(self._name, text)
 
@@ -70,11 +77,25 @@ class Character:
         return f"<Character name={self._name!r}>"
 
     def emote(
-            self, mood: str,
-            pos: ImagePosition | tuple[int, int] | str | None = None
+            self, mood: str, *,
+            pos: ImagePosition | tuple[int, int] | str | None = None,
+            animation: str | Animation | None = None
     ):
         self._mood = mood
         self._img_pos = pos
+        self.chars.show(
+                self._name, mood=mood,
+                pos=pos, animation=animation)
+
+    def show(
+            self, *,
+            pos: ImagePosition | tuple[int, int] | str | None = None,
+            animation: str | Animation | None = None
+     ) -> None:
+        self.emote(None, pos=pos, animation=animation)
+
+    def hide(self) -> None:
+        self.chars.hide(self._name)
 
 
 @dataclass
@@ -103,6 +124,10 @@ class CharacterManager:
         self.characters = {}
         for char in characters:
             self.characters[char._name] = char
+            # TODO: this works, but is dependent on the
+            # fact that Frontend depends on this class,
+            # injection should be managed by DI itself
+            char.set_char_manager(self)
         self.right = (500, 200)
         self.center = (250, 200)
         self.left = (0, 200)
