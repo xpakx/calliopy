@@ -456,16 +456,19 @@ class DrawableImages(DrawableComponent):
         self.chars.update_moods_from_chars()
 
         for key, value in self.chars.visible.items():
-            if value.animation:
-                if type(value.animation) is Animation:
-                    self.anim.animate(value.animation)
-                elif type(value.animation) is str:
-                    if AnimationLib.has_animation(value.animation):
-                        anim_method = getattr(AnimationLib, value.animation)
-                        animation = anim_method(value)
-                        self.anim.animate(animation)
-                    else:
-                        self.logger.warn(f"Unknown animation {value.animation}")
+            self.register_animation(value)
+
+    def register_animation(self, value):
+        anim = value.animation
+        if not anim:
+            return
+        if type(anim) is str and AnimationLib.has_animation(anim):
+            anim_method = getattr(AnimationLib, anim)
+            anim = anim_method(value)
+        if not isinstance(anim, Animation):
+            self.logger.warn(f"Unknown animation {anim}")
+            return
+        self.anim.animate(anim)
 
     def on_new_scene(self) -> None:
         self.chars.reset()
