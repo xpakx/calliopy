@@ -105,6 +105,11 @@ class AnimationLib:
             ease_func=ease
         )
 
+    @classmethod
+    def has_animation(cls, name: str) -> bool:
+        attr = cls.__dict__.get(name)
+        return isinstance(attr, classmethod)
+
 
 @Component(tags=["anim", "anim_manager"])
 class AnimationManager:

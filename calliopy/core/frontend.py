@@ -418,6 +418,7 @@ class DrawableImages(DrawableComponent):
         self.dial = dial
         self.time_passed = 0
         self.anim = anim_manager
+        self.logger = LoggerFactory.get_logger()
 
     def init(self) -> None:
         pass
@@ -459,12 +460,12 @@ class DrawableImages(DrawableComponent):
                 if type(value.animation) is Animation:
                     self.anim.animate(value.animation)
                 elif type(value.animation) is str:
-                    if value.animation == "fadein":
-                        fadein = AnimationLib.fadein(value)
-                        self.anim.animate(fadein)
-                    elif value.animation == "fadeout":
-                        fadeout = AnimationLib.fadeout(value)
-                        self.anim.animate(fadeout)
+                    if AnimationLib.has_animation(value.animation):
+                        anim_method = getattr(AnimationLib, value.animation)
+                        animation = anim_method(value)
+                        self.anim.animate(animation)
+                    else:
+                        self.logger.warn(f"Unknown animation {value.animation}")
 
     def on_new_scene(self) -> None:
         self.chars.reset()
