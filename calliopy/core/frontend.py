@@ -13,10 +13,10 @@ from calliopy.core.script import ScriptManager
 from calliopy.logger.logger import LoggerFactory
 from calliopy.core.audio import AudioManager
 from calliopy.core.animation import AnimationLib, Animation
+from calliopy.core.timer import TimeManager
 from greenlet import greenlet
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
-from typing import Callable
 
 log_level = {
         1: "TRACE", 2: "DEBUG", 3: "INFO",
@@ -40,16 +40,6 @@ class FrontendConfig:
     height: int = 600
     font_size = 24
     title: str = "Calliopy Visual Novel"
-
-
-@dataclass
-class Timer:
-    name: str
-    timer: float
-    blocking: bool = False
-    permanent: bool = False
-    after: Callable[[str], None] | None = None
-    ontick: Callable[[str, float], None] | None = None
 
 
 class DrawableComponent(ABC):
@@ -102,6 +92,7 @@ class CalliopyFrontend:
             script: ScriptManager,
             audio_manager: AudioManager,
             gui,
+            time_manager: TimeManager,
     ):
         if not issubclass(front_config.__class__, FrontendConfig):
             raise Exception("Frontend config must extend FrontendConfig class")
@@ -116,8 +107,8 @@ class CalliopyFrontend:
         self.audio = audio_manager
         self.gui = gui
         self.drawables = []
+        self.timers = time_manager
         self.should_close = False
-        self.timers: list[Timer] = []
 
     @Inject()
     def set_drawables(self, drawables: list[DrawableComponent]) -> None:
@@ -138,31 +129,6 @@ class CalliopyFrontend:
             0,
             WHITE
         )
-
-    def process_timers(
-            self, dt: float) -> tuple[bool, bool]:
-        timers = self.timers
-        blocking = False
-        pause_end = False
-        i = 0
-        while i < len(timers):
-            timer = timers[i]
-            if not timer.permanent:
-                timer.timer -= dt
-            if timer.timer <= 0 and not timer.permanent:
-                timers[i] = timers[-1]
-                timers.pop()
-                if timer.name == "pause":
-                    pause_end = True
-                if timer.after:
-                    timer.after(timer.name)
-            else:
-                if timer.blocking:
-                    blocking = True
-                i += 1
-                if timer.ontick:
-                    timer.ontick(timer.name, dt)
-        return pause_end, blocking
 
     def run(self):
         trace_callback = TRACELOGCALLBACK(get_raylib_logger())
@@ -193,14 +159,14 @@ class CalliopyFrontend:
             proceed_scene = self.tick(dt)
 
             if proceed_scene:
-                self.timers = []
+                self.timers.reset_timers()
                 has_scene = self.resume_scene()
                 if not has_scene:
                     break
                 for drawable in self.drawables:
                     drawable.after_scene_give_control()
                 self.update_sounds()
-                self.update_timers()
+                self.timers.update(self.dial)
 
             end_drawing()
 
@@ -231,19 +197,6 @@ class CalliopyFrontend:
         if to_play:
             play_sound(to_play)
 
-    def update_timers(self) -> None:
-        if self.dial.pause_for > 0:
-            self.timers.append(
-                    Timer(
-                        timer=self.dial.pause_for,
-                        name="pause",
-                        blocking=self.dial.blocking_pause,
-                    )
-            )
-
-    def register_timer(self, timer: Timer) -> None:
-        self.timers.append(timer)
-
     def tick(self, dt: float) -> bool:
         proceed_scene = False
         if self.dial.current_text and is_key_pressed(KEY_ENTER):
@@ -257,7 +210,7 @@ class CalliopyFrontend:
         if self.dial.paused and is_key_pressed(KEY_ENTER):
             proceed_scene = True
 
-        pause_ended, blocking = self.process_timers(dt)
+        pause_ended, blocking = self.timers.process_timers(dt)
         if not proceed_scene:
             proceed_scene = pause_ended
         if blocking:
