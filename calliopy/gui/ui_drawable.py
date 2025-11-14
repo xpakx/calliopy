@@ -1,6 +1,7 @@
 from calliopy.logger.logger import LoggerFactory
 from calliopy.core.annotations import Component, Inject
 from calliopy.core.frontend import DrawableComponent
+from calliopy.core.timer import TimeManager, Timer
 from calliopy.gui.ui import Element, Style, Image
 from calliopy.gui.parser.layout import UIParser
 from dataclasses import is_dataclass, fields
@@ -101,12 +102,18 @@ class UIComponent:
 
 @Component(tags=["ui", "gui"])
 class UIDrawable(DrawableComponent):
-    def __init__(self, gui_manager):
+    def __init__(
+            self,
+            gui_manager,
+            time_manager: TimeManager,
+    ):
         self.logger = LoggerFactory.get_logger()
         self.layouts: dict[str, UIComponent] = {}
         self.component: UIComponent | None = None
         self._show = False
         self.dispatcher = gui_manager
+        self.timers = time_manager
+        self.lock: Timer | None = None
 
     @Inject()
     def set_layouts(self, layouts: list[UIComponent]) -> None:
@@ -118,7 +125,20 @@ class UIDrawable(DrawableComponent):
             self.component.root.draw()
 
     def init(self) -> None:
-        pass
+        menu = self.layouts.get('menu')
+        if menu:
+            self.lock = Timer(
+                    name="menu_lock",
+                    timer=0.0,
+                    blocking=True,
+                    permanent=True
+            )
+            self.timers.register_timer(self.lock)
+            self.show('menu')
+
+    def kill_lock(self) -> None:
+        if self.lock:
+            self.lock.kill = True
 
     def update(self, dt: float) -> None:
         if self.component:

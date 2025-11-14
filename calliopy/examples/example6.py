@@ -12,6 +12,12 @@ def exit_action(frontend):
     frontend.close()
 
 
+@UIAction(name="new_game")
+def start_game_action(gui):
+    gui.kill_lock()
+    gui.hide()
+
+
 @Component()
 @dataclass
 class Menu(UIComponent):
