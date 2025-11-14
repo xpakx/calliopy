@@ -127,13 +127,7 @@ class UIDrawable(DrawableComponent):
     def init(self) -> None:
         menu = self.layouts.get('menu')
         if menu:
-            self.lock = Timer(
-                    name="menu_lock",
-                    timer=0.0,
-                    blocking=True,
-                    permanent=True
-            )
-            self.timers.register_timer(self.lock)
+            self.lock = self.timers.simple_lock("menu_lock")
             self.show('menu')
 
     def kill_lock(self) -> None:

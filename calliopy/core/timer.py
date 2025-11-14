@@ -63,3 +63,13 @@ class TimeManager:
                         blocking=dial.blocking_pause,
                     )
             )
+
+    def simple_lock(self, name: str) -> Timer:
+        lock = Timer(
+                name=name,
+                timer=0.0,
+                blocking=True,
+                permanent=True
+        )
+        self.register_timer(lock)
+        return lock
