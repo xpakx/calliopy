@@ -4,7 +4,7 @@ from utils import ScriptableDialogueManager
 from calliopy.core.container import (
         CalliopyContainer, ComponentData, get_type_name
 )
-from calliopy.core.annotations import Scene, Component
+from calliopy.core.annotations import Scene, Component, Inject
 from calliopy.core.script import ScriptManager
 
 
@@ -153,3 +153,53 @@ def test_dependency_param_indices(script):
     dep = b_data.dependencies[0]
     assert dep.name == "a"
     assert dep.param == 0
+
+
+def test_setter_with_dep_and_default(script):
+    class X:
+        def __init__(self):
+            self.val = None
+
+        @Inject()
+        def configure(self, missing: int = 99):
+            self.val = missing
+
+    script.register(X)
+    x = script.get_component(get_type_name(X))
+    assert x.val == 99
+
+
+def test_list_dependency(script):
+    @Component()
+    class X:
+        def __init__(self):
+            pass
+
+    @Component()
+    class Y(X):
+        def __init__(self):
+            pass
+
+    @Component()
+    class C:
+        def __init__(self, a_list: list[X]):
+            self.a_list = a_list
+
+    script.register(X)
+    script.register(Y)
+    script.register(C)
+
+    c = script.get_component(get_type_name(C))
+    assert isinstance(c.a_list, list)
+    assert len(c.a_list) == 2
+
+
+def test_dependency_default_used(script):
+    @Component()
+    class B:
+        def __init__(self, missing: int = 123):
+            self.missing = missing
+
+    script.register(B)
+    b = script.get_component(get_type_name(B))
+    assert b.missing == 123
