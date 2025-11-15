@@ -5,6 +5,7 @@ from calliopy.core.raylib import (
         load_sound, init_audio_device,
         set_master_volume,
 )
+from pathlib import Path
 
 
 @Component(tags=["audio", "audio_manager"])
@@ -38,6 +39,9 @@ class AudioManager:
         return False
 
     def preload(self, key: str, path: str) -> None:
+        if not Path(path).exists():
+            self.logger.warn(f"Sound {path} doesn't exist")
+            return
         self.sound_lib[key] = load_sound(path)
 
     def unload(self, key: str) -> None:
