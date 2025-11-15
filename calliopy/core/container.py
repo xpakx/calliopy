@@ -201,6 +201,11 @@ class CalliopyContainer:
         else:
             component = comp_data.component_class(**kwargs)
 
+        self.run_setters(comp_data, component)
+
+        return component
+
+    def run_setters(self, comp_data: ComponentData, component: Any) -> Any:
         for setter in comp_data.setters:
             kwargs = {}
             for dep in setter.dependencies:
@@ -209,8 +214,6 @@ class CalliopyContainer:
                     self.logger.warn(f"Cannot resolve setter dependency {dep.name} of type {dep.dep_type}")
                 kwargs[dep.name] = dep_instance
             setter.method(component, **kwargs)
-
-        return component
 
     def construct_dependency(self, dep: DependencyData) -> Any:
         if dep.dep_type == get_type_name(type(self)):
