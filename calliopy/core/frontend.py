@@ -417,6 +417,9 @@ class DrawableImages(DrawableComponent):
             return
         if type(anim) is str and AnimationLib.has_animation(anim):
             anim_method = getattr(AnimationLib, anim)
+            # TODO: only single-param animations should be
+            # usable for str-based registering
+            # or, optionally, we could add way to pass params
             anim = anim_method(value)
         if not isinstance(anim, Animation):
             self.logger.warn(f"Unknown animation {anim}")

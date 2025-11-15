@@ -104,6 +104,7 @@ class ImageDef:
     mood: str | None = None
     pos: tuple[int, int] = (500, 200)
     scale: float = 1.0
+    rotation: float = 0.0
     opacity: float = 1.0
     hide: bool = False
     temporary: bool = False

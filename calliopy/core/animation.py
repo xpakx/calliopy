@@ -77,6 +77,15 @@ class AnimationLib:
         new_a = int(0xFF * t)
         value.color = (new_a << 24) | (0x00FFFFFF & value.color)
 
+    @staticmethod
+    def lerp(a, b, t: float):
+        return a + (b - a) * t
+
+    @classmethod
+    def has_animation(cls, name: str) -> bool:
+        attr = cls.__dict__.get(name)
+        return isinstance(attr, classmethod)
+
     @classmethod
     def fadein(
             cls, image, total_time: int = 0.2,
@@ -106,9 +115,52 @@ class AnimationLib:
         )
 
     @classmethod
-    def has_animation(cls, name: str) -> bool:
-        attr = cls.__dict__.get(name)
-        return isinstance(attr, classmethod)
+    def scale(
+            cls, image, start, end, total_time=0.2,
+            ease: Callable[[float], float] = Ease.linear
+    ):
+        return Animation(
+            name=f"scale_{image.name}",
+            duration=total_time,
+            start_value=start,
+            end_value=end,
+            field=FieldForAnimation(image, "scale"),
+            ease_func=ease
+        )
+
+    @classmethod
+    def rotate(
+            cls, image, start_deg, end_deg, total_time=0.2,
+            ease: Callable[[float], float] = Ease.linear
+    ):
+        return Animation(
+            name=f"rotate_{image.name}",
+            duration=total_time,
+            start_value=start_deg,
+            end_value=end_deg,
+            field=FieldForAnimation(image, "rotation"),
+            ease_func=ease
+        )
+
+    @classmethod
+    def move(
+            cls, image, start_pos, end_pos, total_time=0.2,
+            ease: Callable[[float], float] = Ease.linear
+    ):
+        sx, sy = start_pos
+        ex, ey = end_pos
+
+        return Animation(
+            name=f"move_{image.name}",
+            duration=total_time,
+            start_value=0.0,
+            end_value=1.0,
+            on_update=lambda t: setattr(
+                image, "pos",
+                (cls.lerp(sx, ex, t), cls.lerp(sy, ey, t))
+            ),
+            ease_func=ease
+        )
 
 
 @Component(tags=["anim", "anim_manager"])
