@@ -26,7 +26,16 @@ class AudioManager:
             self,
             key: str
     ) -> None:
-        self.to_play = key
+        if self.has_sound(key):
+            self.to_play = key
+        else:
+            self.preload(key, f"files/{key}.mp3")
+            self.to_play = key if self.has_sound(key) else None
+
+    def has_sound(self, key: str) -> bool:
+        if key in self.sound_lib:
+            return True
+        return False
 
     def preload(self, key: str, path: str) -> None:
         self.sound_lib[key] = load_sound(path)
