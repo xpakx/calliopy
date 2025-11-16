@@ -12,7 +12,7 @@ from calliopy.core.annotations import Component, Inject
 from calliopy.core.script import ScriptManager
 from calliopy.logger.logger import LoggerFactory
 from calliopy.core.audio import AudioManager
-from calliopy.core.animation import AnimationLib, Animation
+from calliopy.core.animation import AnimationLib, Animation, FieldForAnimation
 from calliopy.core.timer import TimeManager
 from greenlet import greenlet
 from dataclasses import dataclass
@@ -431,3 +431,62 @@ class DrawableImages(DrawableComponent):
     def on_new_scene(self) -> None:
         self.chars.reset()
         self.time_passed = 0
+
+
+@Component(if_true="not custom_overlay")
+class DrawableOverlay(DrawableComponent):
+    def __init__(
+            self,
+            front_config,
+            anim_manager,
+    ) -> None:
+        self.time_passed = 0
+        self.anim = anim_manager
+        self.logger = LoggerFactory.get_logger()
+        self.active = False
+        self.opacity = 0.0
+        self.width = front_config.width
+        self.height = front_config.height
+
+    def init(self) -> None:
+        pass
+
+    def destroy(self) -> None:
+        pass
+
+    def update(self, dt: float) -> None:
+        self.time_passed += dt
+
+    def draw(self) -> None:
+        opacity = 1 - abs(2*self.opacity - 1)
+        a = int(0xFF * opacity)
+        color = (a << 24) | 0x00000000
+        draw_rectangle(0, 0, self.width, self.height, color)
+
+    def is_active(self) -> bool:
+        return self.active
+
+    def after_scene_give_control(self) -> None:
+        pass
+
+    def z_index(self) -> None:
+        return 9000
+
+    def end_transiton(self) -> None:
+        self.active = False
+
+    def start_transition(self) -> None:
+        self.active = True
+        self.time_passed = 0
+        anim = Animation(
+            name="overlay",
+            duration=1.5,
+            start_value=0.0,
+            end_value=1.0,
+            field=FieldForAnimation(self, "opacity"),
+            on_end=lambda: self.end_transiton()
+        )
+        self.anim.animate(anim)
+
+    def on_new_scene(self) -> None:
+        pass
