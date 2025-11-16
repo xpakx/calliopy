@@ -263,6 +263,9 @@ class CalliopyContainer:
     def run_function(self, func: Any) -> Any:
         self.context.reset()
         comp = self.components_by_class.get(get_type_name(func))
+        if not comp:
+            self.logger.warn(f"No function {get_type_name(func)}")
+            return None
         component = comp[0]
         kwargs = {}
         for dep in component.dependencies:
@@ -277,6 +280,9 @@ class CalliopyContainer:
     def get_function(self, func: Any) -> Any:
         self.context.reset()
         comp = self.components_by_class.get(get_type_name(func))
+        if not comp:
+            self.logger.warn(f"No function {get_type_name(func)}")
+            return None
         component = comp[0]
         kwargs = {}
         for dep in component.dependencies:
