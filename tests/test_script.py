@@ -172,8 +172,7 @@ def test_setter_with_dep_and_default(script):
 def test_list_dependency(script):
     @Component()
     class X:
-        def __init__(self):
-            pass
+        pass
 
     @Component()
     class Y(X):

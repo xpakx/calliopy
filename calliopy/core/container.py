@@ -99,7 +99,7 @@ class CalliopyContainer:
 
         tags = comp_dec.get('tags', [])
         self.add_component(comp_data, component_name, component_resolved_type, tags)
-        self.names.add(comp_orig_name)  # TODO: use orig_name as tag
+        self.names.add(comp_orig_name)
 
     def add_component(
             self,
@@ -218,6 +218,8 @@ class CalliopyContainer:
             dep_instance = self.construct_dependency(dep)
             if dep_instance is None:
                 self.logger.warn(f"Cannot resolve dependency {dep.name} of type {dep.dep_type}")
+                if dep.name in ["args", "kwargs"]:
+                    continue
             kwargs[dep.name] = dep_instance
 
         if inspect.isclass(comp_data.component_class):
