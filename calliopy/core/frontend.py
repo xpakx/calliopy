@@ -93,6 +93,7 @@ class CalliopyFrontend:
             audio_manager: AudioManager,
             gui,
             time_manager: TimeManager,
+            anim_manager
     ):
         if not issubclass(front_config.__class__, FrontendConfig):
             raise Exception("Frontend config must extend FrontendConfig class")
@@ -109,6 +110,7 @@ class CalliopyFrontend:
         self.drawables = []
         self.timers = time_manager
         self.should_close = False
+        self.anim = anim_manager
 
     @Inject()
     def set_drawables(self, drawables: list[DrawableComponent]) -> None:
@@ -152,6 +154,7 @@ class CalliopyFrontend:
             begin_drawing()
             self.draw_background(bg)
 
+            self.anim.tick(dt)
             for drawable in self.drawables:
                 if drawable.is_active():
                     drawable.draw()
@@ -381,7 +384,6 @@ class DrawableImages(DrawableComponent):
 
     def update(self, dt: float) -> None:
         self.time_passed += dt
-        self.anim.tick(dt)
 
     def draw(self) -> None:
         for key, value in self.chars.visible.items():
