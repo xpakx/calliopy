@@ -41,12 +41,9 @@ class Character:
         self._mood = None
         self._img_pos = None
 
-    # TODO: this should be auto managed by DI container,
-    # but for now we inject from the manager itself,
-    # bc we need to implement defering calling setters
-    # until the whole chains of components is created
-    def set_char_manager(self, char_manager: "CharacterManager") -> None:
-        self.chars = char_manager
+    @Inject()
+    def set_char_manager(self, char_manager) -> None:
+        self.chars: CharacterManager = char_manager
 
     def say(self, text: str) -> None:
         self.dial.say(self._name, text)
@@ -125,10 +122,6 @@ class CharacterManager:
         self.characters = {}
         for char in characters:
             self.characters[char._name] = char
-            # TODO: this works, but is dependent on the
-            # fact that Frontend depends on this class,
-            # injection should be managed by DI itself
-            char.set_char_manager(self)
         self.right = (500, 200)
         self.center = (250, 200)
         self.left = (0, 200)

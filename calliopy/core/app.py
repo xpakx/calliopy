@@ -47,7 +47,6 @@ class CalliopyApp:
             main_module = sys.modules["__main__"]
             if getattr(main_module, "__package__", None):
                 package_name = main_module.__package__
-                # TODO: test this
                 file_stem = os.path.splitext(os.path.basename(main_module.__file__))[0]
                 module_name = f"{package_name}.{file_stem}"
                 self.logger.debug("MAIN:", module_name, name)

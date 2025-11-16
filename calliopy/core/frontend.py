@@ -218,7 +218,7 @@ class CalliopyFrontend:
         return proceed_scene
 
     def close(self) -> None:
-        self.dial.cancel()  # TODO: do for all components
+        self.dial.cancel()
         self.should_close = True
 
 

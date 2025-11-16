@@ -29,13 +29,27 @@ class ComponentData:
     setters: list[SetterData] = field(default_factory=list)
 
 
+@dataclass
+class ConstructionContext:
+    scope: str = ""  # MAYBE: not sure we will need that
+    constructed: list[ComponentData] = field(default_factory=list)
+
+    def reset(self) -> None:
+        self.constructed = []
+
+
 class CalliopyContainer:
     def __init__(self):
         self.components_by_class = {}
         self.names = set()
         self.components_by_tag = {}
         self.logger = LoggerFactory.get_logger()
-        self.flags = {}  # TODO: load flags
+        # TODO: load flags
+        self.flags = {}
+        # TODO: not sure if having this as field is a good idea
+        # we don't allow any multithreading anyway, so it can
+        # stay for now
+        self.context = ConstructionContext()
 
     def register(self, component):
         comp_orig_name = get_type_name(component)
@@ -154,6 +168,16 @@ class CalliopyContainer:
             type_name: str | None,
             tag: str | None = None
     ) -> ComponentData | None:
+        self.context.reset()
+        component = self.do_get_component(type_name, tag)
+        self.post_construction()
+        return component
+
+    def do_get_component(
+            self,
+            type_name: str | None,
+            tag: str | None = None
+    ) -> ComponentData | None:
         self.logger.debug("getting component", type_name, tag)
         if tag:
             self.logger.debug(self.components_by_tag.get(tag))
@@ -201,7 +225,7 @@ class CalliopyContainer:
         else:
             component = comp_data.component_class(**kwargs)
 
-        self.run_setters(comp_data, component)
+        self.context.constructed.append(comp_data)
 
         return component
 
@@ -229,34 +253,42 @@ class CalliopyContainer:
                     continue
                 dep_instance.append(elem)
         else:
-            dep_instance = self.get_component(dep.dep_type, dep.name)
+            dep_instance = self.do_get_component(dep.dep_type, dep.name)
         if dep_instance is None and dep.default is not None:
             return dep.default
         return dep_instance
 
     def run_function(self, func: Any) -> Any:
+        self.context.reset()
         comp = self.components_by_class.get(get_type_name(func))
         component = comp[0]
         kwargs = {}
         for dep in component.dependencies:
-            dep_instance = self.get_component(dep.dep_type, dep.name)
+            dep_instance = self.do_get_component(dep.dep_type, dep.name)
             if dep_instance is None:
                 self.logger.warn(f"Cannot resolve dependency {dep.name} of type {dep.dep_type}")
             kwargs[dep.name] = dep_instance
+        self.post_construction()
 
         return func(**kwargs)
 
     def get_function(self, func: Any) -> Any:
+        self.context.reset()
         comp = self.components_by_class.get(get_type_name(func))
         component = comp[0]
         kwargs = {}
         for dep in component.dependencies:
-            dep_instance = self.get_component(dep.dep_type, dep.name)
+            dep_instance = self.do_get_component(dep.dep_type, dep.name)
             if dep_instance is None:
                 self.logger.warn(f"Cannot resolve dependency {dep.name} of type {dep.dep_type}")
             kwargs[dep.name] = dep_instance
+        self.post_construction()
 
         return func, kwargs
+
+    def post_construction(self) -> None:
+        for comp in self.context.constructed:
+            self.run_setters(comp, comp.component)
 
     def get_setters(self, cls) -> list[SetterData]:
         all_methods = inspect.getmembers(cls, predicate=lambda x: callable(x))
