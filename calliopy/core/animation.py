@@ -20,6 +20,8 @@ class Animation:
     on_end: Callable[[], None] | None = None
     field: FieldForAnimation | None = None
     ease_func: Callable[[float], float] = lambda t: t
+    block: bool = False
+    soft_block: bool = False
 
     def tick(self, dt: float) -> bool:
         self.elapsed += dt
@@ -167,12 +169,16 @@ class AnimationLib:
 class AnimationManager:
     def __init__(self):
         self.animations: list[Animation] = []
+        self.blocking = False
+        self.soft_blocking = False
 
     def animate(self, animation: Animation):
         self.animations.append(animation)
 
     def tick(self, dt: float):
         i = 0
+        self.blocking = False
+        self.soft_blocking = False
         while i < len(self.animations):
             anim = self.animations[i]
             if anim.tick(dt):
@@ -180,6 +186,10 @@ class AnimationManager:
                 self.animations.pop()
             else:
                 i += 1
+                if anim.block:
+                    self.blocking = True
+                elif anim.soft_block:
+                    self.soft_blocking = True
 
     def clear(self):
         for anim in self.animations:

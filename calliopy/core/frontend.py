@@ -218,6 +218,8 @@ class CalliopyFrontend:
             proceed_scene = pause_ended
         if blocking:
             proceed_scene = False
+        if self.anim.blocking or self.anim.soft_blocking:
+            proceed_scene = False
         return proceed_scene
 
     def close(self) -> None:
@@ -484,7 +486,7 @@ class DrawableOverlay(DrawableComponent):
             start_value=0.0,
             end_value=1.0,
             field=FieldForAnimation(self, "opacity"),
-            on_end=lambda: self.end_transiton()
+            on_end=lambda: self.end_transiton(),
         )
         self.anim.animate(anim)
 
