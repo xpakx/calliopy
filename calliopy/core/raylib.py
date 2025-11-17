@@ -153,6 +153,8 @@ WHITE = 0xFFFFFFFF
 
 KEY_ENTER = 257
 KEY_ESCAPE = 256
+KEY_SPACE = 32
+KEY_0 = 48
 KEY_1 = 49
 KEY_2 = 50
 KEY_3 = 51
@@ -163,9 +165,34 @@ KEY_7 = 55
 KEY_8 = 56
 KEY_9 = 57
 
+KEY_A = 65
+
+KEY_UP = 265
+KEY_DOWN = 264
+KEY_LEFT = 263
+KEY_RIGHT = 262
+
 MOUSE_BUTTON_LEFT = 0
 MOUSE_BUTTON_RIGHT = 1
 MOUSE_BUTTON_MIDDLE = 2
+
+
+KEY_MAP = {
+    "space": KEY_SPACE,
+    "enter": KEY_ENTER,
+    "esc": KEY_ESCAPE,
+    "escape": KEY_ESCAPE,
+    "up": KEY_UP,
+    "down": KEY_DOWN,
+    "left": KEY_LEFT,
+    "right": KEY_RIGHT,
+}
+
+for i in range(26):
+    KEY_MAP[chr(ord('a') + i)] = KEY_A + i
+
+for i in range(10):
+    KEY_MAP[str(i)] = KEY_0 + i
 
 _trace_callback = None
 
