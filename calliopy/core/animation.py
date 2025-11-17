@@ -196,6 +196,9 @@ class AnimationManager:
             anim.tick(anim.duration)
         self.animations.clear()
 
+    def on_script_control(self):
+        self.clear()
+
 
 if __name__ == "__main__":
     import time

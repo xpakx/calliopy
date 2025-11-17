@@ -50,6 +50,7 @@ def intro(dial, time: TimeOfDay):
 
 @Scene()
 def forest_path(dial, time: TimeOfDay, charsd):
+    dial.transition("fadein")
     dial.narrate(f"The forest path is quiet. {time.description()} surrounds you.")
     dial.say("Bob", "I hope we don't run into trouble...")
     dial.say("Alice", "Oh, come on! It'll be fun!")

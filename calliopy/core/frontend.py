@@ -162,6 +162,7 @@ class CalliopyFrontend:
             proceed_scene = self.tick(dt)
 
             if proceed_scene:
+                self.anim.on_script_control()
                 self.timers.reset_timers()
                 has_scene = self.resume_scene()
                 if not has_scene:
@@ -212,6 +213,8 @@ class CalliopyFrontend:
             proceed_scene = True
         if self.dial.paused and is_key_pressed(KEY_ENTER):
             proceed_scene = True
+        if is_key_pressed(KEY_ENTER):
+            self.anim.soft_blocking = False
 
         pause_ended, blocking = self.timers.process_timers(dt)
         if not proceed_scene:
@@ -262,6 +265,7 @@ class DialogueManager:
         self.paused = None
         self.pause_for = 0
         self.blocking_pause = False
+        self.transition_key: str | None = None
 
     def say(self, speaker, text):
         if self._abort:
@@ -309,6 +313,9 @@ class DialogueManager:
 
     def cancel(self):
         self._abort = True
+
+    def transition(self, key: str) -> None:
+        self.transition_key = key
 
 
 @Component(if_true="not custom_dialogue")
@@ -441,6 +448,7 @@ class DrawableOverlay(DrawableComponent):
             self,
             front_config,
             anim_manager,
+            dial,
     ) -> None:
         self.time_passed = 0
         self.anim = anim_manager
@@ -449,6 +457,7 @@ class DrawableOverlay(DrawableComponent):
         self.opacity = 0.0
         self.width = front_config.width
         self.height = front_config.height
+        self.dial = dial
 
     def init(self) -> None:
         pass
@@ -469,7 +478,10 @@ class DrawableOverlay(DrawableComponent):
         return self.active
 
     def after_scene_give_control(self) -> None:
-        pass
+        if self.dial.transition_key:
+            self.dial.transition_key = None
+            # TODO
+            self.start_transition()
 
     def z_index(self) -> None:
         return 9000
@@ -485,6 +497,7 @@ class DrawableOverlay(DrawableComponent):
             duration=1.5,
             start_value=0.0,
             end_value=1.0,
+            soft_block=True,
             field=FieldForAnimation(self, "opacity"),
             on_end=lambda: self.end_transiton(),
         )
