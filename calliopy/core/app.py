@@ -7,6 +7,8 @@ from typing import Any, List, Type, Tuple
 from types import ModuleType
 from calliopy.core.container import CalliopyContainer
 from calliopy.logger.logger import LoggerFactory
+from pathlib import Path
+import json
 
 
 class CalliopyApp:
@@ -47,7 +49,9 @@ class CalliopyApp:
             main_module = sys.modules["__main__"]
             if getattr(main_module, "__package__", None):
                 package_name = main_module.__package__
-                file_stem = os.path.splitext(os.path.basename(main_module.__file__))[0]
+                file_stem = os.path.splitext(
+                        os.path.basename(main_module.__file__)
+                )[0]
                 module_name = f"{package_name}.{file_stem}"
                 self.logger.debug("MAIN:", module_name, name)
                 if module_name == name:
@@ -93,13 +97,29 @@ class CalliopyApp:
                     all_classes.update(self.inspect_module_class(module))
                     all_funcs.update(self.inspect_module_func(module))
                 except ImportError as e:
-                    self.logger.error(f"Failed to import module {module_name}: {e}")
+                    self.logger.error(
+                            f"Failed to import module {module_name}: {e}"
+                    )
 
         return all_classes, all_funcs
 
     def get_components(self, all_classes: List[Any]) -> List[Any]:
         return [obj for name, obj in all_classes if
                 'Component' in get_decorators(obj)]
+
+    def load_config(self) -> dict[str, str]:
+        config = {}
+        prefix = "CALLIOPY_"
+        p = Path('files/config.json')
+        if p.is_file():
+            with open(p, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                config.update(data)
+        for key, val in os.environ.items():
+            if key.startswith(prefix):
+                cleaned_key = key[len(prefix):].lower().replace("_", ".")
+                config[cleaned_key] = val
+        return config
 
 
 def get_decorators(cls: Type) -> List[str]:

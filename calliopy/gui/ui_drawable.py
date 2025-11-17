@@ -7,7 +7,6 @@ from calliopy.gui.parser.layout import UIParser
 from dataclasses import is_dataclass, fields
 
 
-# TODO: make this usable like Character class
 class UIComponent:
     def __init__(self, front_config) -> None:
         self.width: int = front_config.width

@@ -31,7 +31,6 @@ class ComponentData:
 
 @dataclass
 class ConstructionContext:
-    scope: str = ""  # MAYBE: not sure we will need that
     constructed: list[ComponentData] = field(default_factory=list)
 
     def reset(self) -> None:
