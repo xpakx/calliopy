@@ -12,9 +12,9 @@ from calliopy.core.annotations import Component, Inject
 from calliopy.core.script import ScriptManager
 from calliopy.logger.logger import LoggerFactory
 from calliopy.core.audio import AudioManager
-from calliopy.core.animation import AnimationLib, Animation, FieldForAnimation
+from calliopy.core.animation import AnimationLib, Animation, FieldForAnimation, Ease
+from calliopy.core.dialogue import DialogueManager, SceneScheduler
 from calliopy.core.timer import TimeManager
-from greenlet import greenlet
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 
@@ -86,8 +86,8 @@ class CalliopyFrontend:
     def __init__(
             self,
             front_config: FrontendConfig,
-            dial,
-            scene_scheduler,
+            dial: DialogueManager,
+            scene_scheduler: SceneScheduler,
             char_manager,
             script: ScriptManager,
             audio_manager: AudioManager,
@@ -228,94 +228,6 @@ class CalliopyFrontend:
     def close(self) -> None:
         self.dial.cancel()
         self.should_close = True
-
-
-class ChoiceResult:
-    def __init__(self, index):
-        self.index = index
-
-
-@Component(tags="scene_scheduler")
-class SceneScheduler:
-    def __init__(self):
-        self.current = None
-        self.main = greenlet.getcurrent()
-        self.result = None
-
-    def run_scene(self, scene_func, *args, **kwargs):
-        g = greenlet(lambda: scene_func(*args, **kwargs))
-        self.current = g
-        g.switch()
-
-    def resume(self):
-        if self.current and not self.current.dead:
-            self.result = self.current.switch()
-
-
-@Component(tags=["dialogue", "dial"])
-class DialogueManager:
-    def __init__(self, scene_scheduler):
-        self.scheduler = scene_scheduler
-        self._abort = False
-        self.current_text = ""
-        self.speaker = None
-        self.mood = None
-        self.choice_result = None
-        self.options = []
-        self.paused = None
-        self.pause_for = 0
-        self.blocking_pause = False
-        self.transition_key: str | None = None
-
-    def say(self, speaker, text):
-        if self._abort:
-            return
-        self.speaker = speaker
-        self.current_text = text
-        self.scheduler.main.switch()
-        self.current_text = ""
-
-    def choice(self, *options):
-        if self._abort:
-            return ChoiceResult(0)
-        self.options = list(options)
-        self.choice_result = None
-        self.scheduler.main.switch()
-        result = self.choice_result
-        self.options = []
-        return ChoiceResult(result)
-
-    def narrate(self, text):
-        if self._abort:
-            return
-        self.speaker = None
-        self.current_text = text
-        self.scheduler.main.switch()
-        self.current_text = ""
-
-    def pause(
-            self, seconds: int | float | None = None,
-            blocking: bool = False
-    ):
-        self.paused = True
-        self.pause_for = 0
-        self.blocking_pause = blocking
-        if seconds is not None:
-            self.pause_for = float(seconds)
-        if self._abort:
-            return
-        self.speaker = None
-        self.current_text = None
-        self.scheduler.main.switch()
-        self.paused = False
-        self.pause_for = 0
-        self.blocking_pause = False
-
-    def cancel(self):
-        self._abort = True
-
-    def transition(self, key: str) -> None:
-        self.transition_key = key
 
 
 @Component(if_true="not custom_dialogue")
@@ -469,8 +381,7 @@ class DrawableOverlay(DrawableComponent):
         self.time_passed += dt
 
     def draw(self) -> None:
-        opacity = 1 - abs(2*self.opacity - 1)
-        a = int(0xFF * opacity)
+        a = int(0xFF * self.opacity)
         color = (a << 24) | 0x00000000
         draw_rectangle(0, 0, self.width, self.height, color)
 
@@ -495,11 +406,12 @@ class DrawableOverlay(DrawableComponent):
         anim = Animation(
             name="overlay",
             duration=1.5,
-            start_value=0.0,
-            end_value=1.0,
+            start_value=1.0,
+            end_value=0.0,
             soft_block=True,
             field=FieldForAnimation(self, "opacity"),
             on_end=lambda: self.end_transiton(),
+            ease_func=Ease.ease_in_cubic
         )
         self.anim.animate(anim)
 

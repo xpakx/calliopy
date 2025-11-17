@@ -1,4 +1,4 @@
-from calliopy.core.frontend import DialogueManager, ChoiceResult
+from calliopy.core.dialogue import DialogueManager, ChoiceResult
 from calliopy.core.annotations import Component
 
 
