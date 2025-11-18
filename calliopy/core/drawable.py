@@ -39,6 +39,9 @@ class DrawableComponent(ABC):
     def after_scene_give_control(self) -> None:
         pass
 
+    def on_progress_scene_ready(self) -> False:
+        return False  # isBlocking
+
     def on_new_scene(self) -> None:
         pass
 
