@@ -20,6 +20,8 @@ class CalliopyApp:
         if module_name is None:
             module_name = '__main__'
         self.container = CalliopyContainer()
+        self.container.flags = self.load_config()
+        self.logger.debug("Config loaded", flags=self.container.flags)
         self.load_module("calliopy.core")
         self.load_module(module_name)
 
