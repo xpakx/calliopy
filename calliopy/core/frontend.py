@@ -123,7 +123,7 @@ class CalliopyFrontend:
             proceed_scene = self.tick(dt)
             if proceed_scene:
                 for drawable in self.drawables:
-                    if drawable.is_active() and drawable.on_progress_scene_ready():
+                    if drawable.on_progress_scene_ready():
                         proceed_scene = False
 
             if proceed_scene:
@@ -180,6 +180,8 @@ class CalliopyFrontend:
             proceed_scene = True
         if is_key_pressed(KEY_ENTER):
             self.anim.soft_blocking = False
+        if self.dial.transition_key:
+            proceed_scene = True
 
         pause_ended, blocking = self.timers.process_timers(dt)
         if not proceed_scene:

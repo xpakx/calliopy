@@ -88,3 +88,5 @@ class DialogueManager:
 
     def transition(self, key: str) -> None:
         self.transition_key = key
+        self.scheduler.main.switch()
+        self.transition_key = None

@@ -139,6 +139,7 @@ class DrawableOverlay(DrawableComponent):
         self.width = front_config.width
         self.height = front_config.height
         self.dial = dial
+        self.after_switch = False
 
     def init(self) -> None:
         pass
@@ -155,13 +156,18 @@ class DrawableOverlay(DrawableComponent):
         draw_rectangle(0, 0, self.width, self.height, color)
 
     def is_active(self) -> bool:
+        if not self.active and self.after_switch:
+            print(self.active)
         return self.active
 
     def after_scene_give_control(self) -> None:
+        # TODO: add more two-part and one-part transitions
+        if self.after_switch and not self.dial.transition_key:
+            self.fade_in()
+            self.after_switch = False
         if self.dial.transition_key:
-            self.dial.transition_key = None
-            # TODO
-            self.start_transition()
+            self.fade_out()
+            self.after_switch = True
 
     def z_index(self) -> None:
         return 9000
@@ -169,7 +175,7 @@ class DrawableOverlay(DrawableComponent):
     def end_transiton(self) -> None:
         self.active = False
 
-    def start_transition(self) -> None:
+    def fade_in(self) -> None:
         self.active = True
         self.time_passed = 0
         anim = Animation(
@@ -177,10 +183,23 @@ class DrawableOverlay(DrawableComponent):
             duration=1.5,
             start_value=1.0,
             end_value=0.0,
-            soft_block=True,
             field=FieldForAnimation(self, "opacity"),
             on_end=lambda: self.end_transiton(),
             ease_func=Ease.ease_in_cubic
+        )
+        self.anim.animate(anim)
+
+    def fade_out(self) -> None:
+        self.active = True
+        self.time_passed = 0
+        anim = Animation(
+            name="overlay",
+            duration=1.5,
+            start_value=0.0,
+            end_value=1.0,
+            soft_block=True,
+            field=FieldForAnimation(self, "opacity"),
+            ease_func=Ease.ease_out_cubic
         )
         self.anim.animate(anim)
 
