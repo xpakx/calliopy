@@ -44,13 +44,13 @@ def intro(dial, time: TimeOfDay):
     dial.narrate(f"The world is {time.description()}.")
     dial.say("Alice", "Bob! Are you ready for today's adventure?")
     c = dial.choice("Absolutely!", "Not really...")
-    dial.transition("fadein")
     if c.index == 1:
         return "alice_leaves"
 
 
 @Scene()
 def forest_path(dial, time: TimeOfDay, charsd):
+    dial.transition("fadein")
     dial.narrate(f"The forest path is quiet. {time.description()} surrounds you.")
     dial.transition("fadein")
     dial.say("Bob", "I hope we don't run into trouble...")
