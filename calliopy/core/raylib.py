@@ -1,13 +1,23 @@
 import ctypes
+import platform
+
 
 # TODO: not sure if RTLD_GLOBAL is a good idea here, might
 # reconsider just wrapping raylib in c later
-raylib = ctypes.CDLL("./clibs/libraylib.so", mode=ctypes.RTLD_GLOBAL)
-forwarder = ctypes.CDLL("./clibs/forward_trace.so")
+def load_dll(name: str, mode=ctypes.DEFAULT_MODE):
+    system = platform.system()
+    if system == "Windows":
+        lib_name = f"{name}.dll"
+    elif system == "Darwin":
+        lib_name = f"{name}.dylib"
+    else:
+        lib_name = f"{name}.so"
+    return ctypes.CDLL(f"./clibs/{lib_name}", mode=mode)
 
-# TODO: Windows
-# raylib = ctypes.CDLL("./clibs/libraylib.dll")
-# forwarder = ctypes.CDLL("./clibs/forward_trace.dll")
+
+raylib = load_dll("libraylib", mode=ctypes.RTLD_GLOBAL)
+forwarder = load_dll("forward_trace")
+
 
 raylib.InitWindow.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_char_p]
 raylib.InitWindow.restype = None
